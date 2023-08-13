@@ -1,5 +1,10 @@
-﻿namespace TsdDelivery.Application;
+﻿using TsdDelivery.Application.Repositories;
 
-public interface IUnitOfWork
+namespace TsdDelivery.Application;
+
+public interface IUnitOfWork : IDisposable
 {
+    public IUserRepository UserRepository { get; }
+
+    public Task<int> SaveChangeAsync();
 }

@@ -1,6 +1,8 @@
-﻿namespace TsdDelivery.Application.Services;
+﻿using TsdDelivery.Application.Interface;
 
-public class CurrentTime
+namespace TsdDelivery.Application.Services;
+
+public class CurrentTime : ICurrentTime
 {
     public DateTime GetCurrentTime() => DateTime.UtcNow;
 }
