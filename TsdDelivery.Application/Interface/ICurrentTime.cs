@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TsdDelivery.Application.Interface;
 
-namespace TsdDelivery.Application.Interface
+public interface ICurrentTime
 {
-    internal interface ICurrentTime
-    {
-    }
+    public DateTime GetCurrentTime();
 }

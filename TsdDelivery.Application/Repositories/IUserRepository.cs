@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TsdDelivery.Domain.Entities;
 
-namespace TsdDelivery.Application.Repositories
+namespace TsdDelivery.Application.Repositories;
+
+public interface IUserRepository : IGenericRepository<User>
 {
-    internal class UserRepository
-    {
-    }
+    public Task<User?> GetUserByPhoneNumber(string phoneNumber);
 }
