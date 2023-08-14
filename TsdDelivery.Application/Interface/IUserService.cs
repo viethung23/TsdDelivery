@@ -1,5 +1,7 @@
-﻿using TsdDelivery.Application.Models;
-using TsdDelivery.Application.Models.Users;
+﻿using Microsoft.AspNetCore.Http;
+using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Models.User.Request;
+using TsdDelivery.Application.Models.User.Response;
 using TsdDelivery.Domain.Entities;
 
 namespace TsdDelivery.Application.Interface;
@@ -7,6 +9,8 @@ namespace TsdDelivery.Application.Interface;
 public interface IUserService
 {
     public Task<OperationResult<List<User>>> GetAllUsers();
-    public Task<OperationResult<User>> Register(UserCreateCommand command);
-    public Task<OperationResult<UserLoginQueryResponse>> Login(UserLoginQuery query);
+    public Task<OperationResult<User>> Register(UserCreateUpdate request);
+    public Task<OperationResult<UserLoginResponse>> Login(LoginRequest query);
+    public Task<OperationResult<UserResponse>> DeleteUser(Guid id);
+    public Task<OperationResult<UserResponse>> UploadImage(Guid id,IFormFile blob);
 }

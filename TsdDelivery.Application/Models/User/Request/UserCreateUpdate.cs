@@ -1,6 +1,6 @@
-﻿namespace TsdDelivery.Application.Models.Users;
+﻿namespace TsdDelivery.Application.Models.User.Request;
 
-public record UserCreateCommand 
+public class UserCreateUpdate
 {
     public string FullName { get; set; }
     public string Email { get; set; }

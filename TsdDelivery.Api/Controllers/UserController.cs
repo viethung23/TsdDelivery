@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography.Xml;
-using TsdDelivery.Api.Contracts.User.Request;
-using TsdDelivery.Api.Contracts.User.Response;
 using TsdDelivery.Application.Interface;
-using TsdDelivery.Application.Models.Users;
+using TsdDelivery.Application.Models.User.Request;
+using TsdDelivery.Application.Models.User.Response;
+using TsdDelivery.Application.Services;
 
 namespace TsdDelivery.Api.Controllers;
 
@@ -51,14 +51,7 @@ public class UserController : BaseController
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] UserCreateUpdate request)
     {
-        var userCommand = new UserCreateCommand
-        {
-            FullName = request.FullName,
-            Email = request.Email,
-            Password = request.Password,
-            PhoneNumber = request.PhoneNumber
-        };
-        var response = await _userService.Register(userCommand);
+        var response = await _userService.Register(request);
 
         if (response.IsError)
         {
@@ -69,32 +62,35 @@ public class UserController : BaseController
 
     [HttpPost]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    {
-        var loginQuery = new UserLoginQuery()
-        {
-            PhoneNumber = request.PhoneNumber,
-            Password = request.Password
-        };
-        var response = await _userService.Login(loginQuery);
+    { 
+        var response = await _userService.Login(request);
 
         if (response.IsError)
         {
             return HandleErrorResponse(response.Errors);
         }
+        return Ok(response.Payload);
+    }
 
-
-        var userLoginResponse = new UserLoginResponse()
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        var response = await _userService.DeleteUser(id);
+        if (response.IsError)
         {
-            Id = response.Payload.Id,
-            AvatarUrl = response.Payload.AvatarUrl,
-            CreatedBy = response.Payload.CreatedBy,
-            CreationDate = response.Payload.CreationDate,
-            Email = response.Payload.Email,
-            FullName = response.Payload.FullName,
-            ModificationDate = response.Payload.ModificationDate,
-            PhoneNumber = response.Payload.PhoneNumber,
-            Token = response.Payload.Token
-        };
-        return Ok(userLoginResponse);
+            return HandleErrorResponse(response.Errors);
+        }
+        return Ok("Delete Success");
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> UploadAvatar(Guid id, IFormFile blob)
+    {
+        var response = await _userService.UploadImage(id, blob);
+        if (response.IsError)
+        {
+            return HandleErrorResponse(response.Errors);
+        }
+        return Ok(response.Payload);
     }
 }

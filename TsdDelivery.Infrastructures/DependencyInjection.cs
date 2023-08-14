@@ -12,12 +12,13 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, string databaseConnection)
     {
-        //services.AddScoped<IChemicalService, ChemicalService>();
-        //services.AddScoped<IChemicalRepository, ChemicalRepository>();
-        //services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IUserService, UserService>();
         services.AddSingleton<ICurrentTime, CurrentTime>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // add service
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IRoleService, RoleService>();
+
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(databaseConnection));

@@ -3,5 +3,7 @@
 public class AppConfiguration
 {
     public string DatabaseConnection { get; set; }
-    public string JWTSecretKey { get; set; }
+    public JwtSettings JwtSettings { get; set; }
+    public FileService FileService { get; set; }
 }
+
