@@ -38,19 +38,23 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
 
     public Task<List<TEntity>> GetAllAsync() => _dbSet.ToListAsync();
 
-    public Task<TEntity?> GetByIdAsync(Guid id)
+    public async Task<TEntity?> GetByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        var result = await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
+        // todo should throw exception when not found
+        if (result == null)
+            throw new Exception($"Not Found by ID: [{id}]");
+        return result;
     }
 
-    public void SoftRemove(TEntity entity)
+    public async Task SoftRemove(TEntity entity)
     {
         entity.IsDeleted = true;
         entity.DeleteBy = _claimsServce.GetCurrentUserId;
         _dbSet.Update(entity);
     }
 
-    public void SoftRemoveRange(List<TEntity> entities)
+    public async Task SoftRemoveRange(List<TEntity> entities)
     {
         foreach (var entity in entities)
         {
@@ -81,14 +85,14 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         return result;
     }
 
-    public void Update(TEntity entity)
+    public async Task Update(TEntity entity)
     {
         entity.ModificationDate = _timeService.GetCurrentTime();
         entity.ModificationBy = _claimsServce.GetCurrentUserId;
         _dbSet.Update(entity);
     }
 
-    public void UpdateRange(List<TEntity> entities)
+    public async Task UpdateRange(List<TEntity> entities)
     {
         foreach (var entity in entities)
         {
@@ -96,5 +100,10 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
             entity.CreatedBy = _claimsServce.GetCurrentUserId;
         }
         _dbSet.UpdateRange(entities);
+    }
+
+    public async Task Delete(TEntity entity)
+    {
+        _dbSet.Remove(entity);
     }
 }

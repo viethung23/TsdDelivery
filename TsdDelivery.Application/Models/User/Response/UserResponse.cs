@@ -1,6 +1,17 @@
-﻿namespace TsdDelivery.Api.Contracts.User.Response;
+﻿namespace TsdDelivery.Application.Models.User.Response;
 
 public record UserResponse
+/*(
+     Guid Id,
+     string FullName,
+     string Email,
+     string PhoneNumber,
+     string? AvatarUrl,
+     DateTime CreationDate,
+     Guid? CreatedBy,
+     DateTime? ModificationDate,
+     string Token
+);*/
 {
     public Guid Id { get; set; }
     public string FullName { get; set; }
