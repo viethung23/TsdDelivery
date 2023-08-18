@@ -19,11 +19,12 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         _claimsServce = claimsService;
         _timeService = currentTime;
     }
-    public async Task AddAsync(TEntity entity)
+    public async Task<TEntity?> AddAsync(TEntity entity)
     {
         entity.CreationDate = _timeService.GetCurrentTime();
         entity.CreatedBy = _claimsServce.GetCurrentUserId;
         await _dbSet.AddAsync(entity);
+        return entity;
     }
 
     public async Task AddRangeAsync(List<TEntity> entities)

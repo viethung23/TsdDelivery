@@ -7,6 +7,10 @@ public class User : BaseEntity
     public string PasswordHash { get; set; }
     public string PhoneNumber { get; set; }
     public string? AvatarUrl { get;set; }
-    public ICollection<UserRole?> UserRoles { get; set; }
 
+    public Guid? RoleId { get; set; }
+    public Role? Role { get; set; }
+
+    public ICollection<Vehicle?> Vehicles { get; set; }
+    public ICollection<Reservation?> Reservations { get; set; }
 }

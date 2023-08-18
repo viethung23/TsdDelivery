@@ -8,9 +8,10 @@ namespace TsdDelivery.Application.Interface;
 
 public interface IUserService
 {
-    public Task<OperationResult<List<User>>> GetAllUsers();
+    public Task<OperationResult<List<UserResponse>>> GetAllUsers();
     public Task<OperationResult<User>> Register(UserCreateUpdate request);
     public Task<OperationResult<UserLoginResponse>> Login(LoginRequest query);
     public Task<OperationResult<UserResponse>> DeleteUser(Guid id);
     public Task<OperationResult<UserResponse>> UploadImage(Guid id,IFormFile blob);
+    public Task<OperationResult<UserResponse>> RegisterDriver(Guid idDriver);
 }

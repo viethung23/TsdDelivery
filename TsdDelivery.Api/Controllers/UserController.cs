@@ -26,32 +26,25 @@ public class UserController : BaseController
         {
             return HandleErrorResponse(response.Errors);
         }
-        var users = response.Payload.ToList();
-        var listUserResponse = new List<UserResponse>();
-        foreach(var user in users)
-        {
-            var userResponse = new UserResponse
-            {
-                Id = user.Id,
-                Email = user.Email,
-                AvatarUrl = user.AvatarUrl,
-                CreatedBy = user.CreatedBy,
-                CreationDate = user.CreationDate,
-                FullName = user.FullName,
-                ModificationDate = user.ModificationDate,
-                PhoneNumber = user.PhoneNumber
-            };
-            listUserResponse.Add(userResponse);
-        }
-        
-
-        return Ok(listUserResponse);
+        return Ok(response.Payload);
     }
 
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] UserCreateUpdate request)
     {
         var response = await _userService.Register(request);
+
+        if (response.IsError)
+        {
+            return HandleErrorResponse(response.Errors);
+        }
+        return Ok("SUCCESS");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RegisterToDriver(Guid id)
+    {
+        var response = await _userService.RegisterDriver(id);
 
         if (response.IsError)
         {
