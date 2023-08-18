@@ -1,4 +1,5 @@
-﻿using TsdDelivery.Application;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using TsdDelivery.Application;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Infrastructures.Repositories;
@@ -21,6 +22,8 @@ public class UnitOfWork : IUnitOfWork
 
     public IRoleRepository RoleRepository => new RoleRepository(_appDbContext,_currentTime,_claimsService);
 
+    //public IUserRoleRepository UserRoleRepository => new UserRoleRepository(_appDbContext);
+
     public async Task<int> SaveChangeAsync()
     {
         return await _appDbContext.SaveChangesAsync();
@@ -42,5 +45,15 @@ public class UnitOfWork : IUnitOfWork
     {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    public IDbContextTransaction BeginTransaction()
+    {
+        return _appDbContext.Database.BeginTransaction();
+    }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        return await _appDbContext.Database.BeginTransactionAsync();
     }
 }

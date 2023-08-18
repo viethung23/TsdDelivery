@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using TsdDelivery.Api.MappingProfiles;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services;
 
@@ -21,7 +20,7 @@ public static class DependencyInjection
         //services.AddFluentValidationAutoValidation();
         //services.AddFluentValidationClientsideAdapters();
 
-        services.AddAutoMapper(typeof(UserMapConfig).Assembly);
+        //services.AddAutoMapper(typeof(UserMapConfig).Assembly);
         return services;
     }
 }
