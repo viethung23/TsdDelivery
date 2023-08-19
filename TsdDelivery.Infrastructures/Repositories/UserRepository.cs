@@ -15,8 +15,13 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         // To do 
     }
 
-    public Task<User?> GetUserByPhoneNumber(string phoneNumber)
+    public Task<List<User?>> GetUserByPhoneNumber(string phoneNumber)
     {
-        return _dbSet.FirstOrDefaultAsync(u => u.PhoneNumber.Equals(phoneNumber));
+        return _dbSet.Where(u => u.PhoneNumber.Equals(phoneNumber)).ToListAsync();
+    }
+
+    public Task<User?> GetUserByPhoneNumberAndRoleId(string phoneNumeber, Guid roleId)
+    {
+        return _dbSet.FirstOrDefaultAsync(u => u.PhoneNumber.Equals(phoneNumeber) && u.RoleId.Equals(roleId));
     }
 }

@@ -39,7 +39,11 @@ public class UserService : IUserService
         var result = new OperationResult<List<UserResponse>>();
         try
         {
-            var users = await _unitOfWork.UserRepository.GetAllAsync();
+            // config property include 
+            string[] role = { "Role"}; 
+
+            var users = await _unitOfWork.UserRepository.GetAllAsync(role);
+            
 
             if (users is null)
             {
@@ -51,7 +55,6 @@ public class UserService : IUserService
             var listUserResponse = new List<UserResponse>();
             foreach (var user in users)
             {
-                //var roles = await _unitOfWork.UserRoleRepository.GetRoleByUser(user.Id);
 
                 var userResponse = new UserResponse
                 {
@@ -63,8 +66,7 @@ public class UserService : IUserService
                     FullName = user.FullName,
                     ModificationDate = user.ModificationDate,
                     PhoneNumber = user.PhoneNumber,
-                    //Roles = roles.Select(r => r.RoleName).ToList()
-                    Roles = new List<string?> { "haha","haha"}
+                    RoleName = user.Role.RoleName
                     
                 };
                 listUserResponse.Add(userResponse);
@@ -87,27 +89,35 @@ public class UserService : IUserService
         var result = new OperationResult<User>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetUserByPhoneNumber(command.PhoneNumber);
-
-            if (user is not null)
+            var users = await _unitOfWork.UserRepository.GetUserByPhoneNumber(command.PhoneNumber);
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(Guid.Parse(command.RoleId));
+            var entity = new User();
+            if (users.Count() > 0)
             {
-                result.AddError(ErrorCode.ValidationError, string.Format("The Phone Number {0} is duplicate", command.PhoneNumber));
-                return result;
+                if(users.Any(x =>x.RoleId.ToString() == command.RoleId))
+                {
+                    result.AddError(ErrorCode.ValidationError, string.Format("Account already exists with phone : [{0}] and role : [{1}]", command.PhoneNumber,role.RoleName));
+                    return result;
+                }
+                else
+                {
+                    entity.Email = command.Email;
+                    entity.FullName = command.FullName;
+                    entity.PhoneNumber = command.PhoneNumber;
+                    entity.PasswordHash = command.Password;
+                    entity.Role = role;
+                }
             }
-
-            var entiy = new User
+            else
             {
-                Email = command.Email,
-                FullName = command.FullName,
-                PhoneNumber = command.PhoneNumber,
-                PasswordHash = command.Password,
-            };
-
-            var u = await _unitOfWork.UserRepository.AddAsync(entiy);
-            var roleUSER = await _unitOfWork.RoleRepository.GetRoleByRoleName("USER");
-            //var userRole = _unitOfWork.UserRoleRepository.AddRoleForUser(u, roleUSER);
+                entity.Email = command.Email;
+                entity.FullName = command.FullName;
+                entity.PhoneNumber = command.PhoneNumber;
+                entity.PasswordHash = command.Password;
+                entity.Role = role;
+            }
+            var u = await _unitOfWork.UserRepository.AddAsync(entity);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-
             if (!isSuccess)
             {
                 result.AddUnknownError("Can not save to database");
@@ -124,16 +134,19 @@ public class UserService : IUserService
         return result;
 
     }
+    
 
     public async Task<OperationResult<UserLoginResponse>> Login(LoginRequest query)
     {
         var result = new OperationResult<UserLoginResponse>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetUserByPhoneNumber(query.PhoneNumber);
+            var roleId = Guid.Parse(query.RoleId);
+            var user = await _unitOfWork.UserRepository.GetUserByPhoneNumberAndRoleId(query.PhoneNumber, roleId);
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
             if (user is null)
             {
-                result.AddError(ErrorCode.IdentityUserDoesNotExist, string.Format("The Phone number {0} not exit", query.PhoneNumber));
+                result.AddError(ErrorCode.IdentityUserDoesNotExist, string.Format("The Phone number [{0}] not exit With role [{1}]", query.PhoneNumber,role.RoleName));
                 return result;
             }
             if (user.PasswordHash != query.Password)
@@ -141,17 +154,8 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.IncorrectPassword, "IncorrectPassword");
                 return result;
             }
-            //var roles = (await _unitOfWork.UserRoleRepository.GetRoleByUser(user.Id)).Select(r => r.RoleName).ToList();
-        /// =========================================================================================================================== here 
-            /*if(roles.Any(x => x.Equals("DRIVER")))
-            {
-                result.AddError(ErrorCode.ValidationError, "Your account is not registered as a driver!");
-                return result;
-            }*/
-            // To do call token generator 
-            //string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime(),roles);
-            string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime(),new List<string?> { "haha"});
 
+            string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime());
 
             var userLoginResponse = new UserLoginResponse()
             {
@@ -163,6 +167,7 @@ public class UserService : IUserService
                 FullName = user.FullName,
                 ModificationDate = user.ModificationDate,
                 PhoneNumber = user.PhoneNumber,
+                RoleName = user.Role.RoleName,
                 Token = token
             };
 
@@ -228,7 +233,6 @@ public class UserService : IUserService
             {
                 result.AddError(ErrorCode.ServerError, "Can not save Role to Database");
             }
-            //var roles = await _unitOfWork.UserRoleRepository.GetRoleByUser(user.Id);
             var userResponse = new UserResponse()
             {
                 Id = user.Id,
@@ -239,8 +243,7 @@ public class UserService : IUserService
                 FullName = user.FullName,
                 ModificationDate = user.ModificationDate,
                 PhoneNumber = user.PhoneNumber,
-                //Roles = roles.Select(r => r.RoleName).ToList()
-                Roles = new List<string?> { "haha"}
+                RoleName = user.Role.RoleName
             };
 
             result.Payload = userResponse;
@@ -253,39 +256,6 @@ public class UserService : IUserService
 
     }
 
-    public async Task<OperationResult<UserResponse>> RegisterDriver(Guid idDriver)
-    {
-        var result = new OperationResult<UserResponse>();
-        try
-        {
-            /*var roles = await _unitOfWork.UserRoleRepository.GetRoleByUser(idDriver);
-            if(roles.Any(r => r.RoleName.Equals("DRIVER") || r.RoleName.Equals("ADMIN")))
-            {
-                result.AddError(ErrorCode.ValidationError, "you are DRIVER already!");
-                return result;
-            }*/
-
-
-            var role = await _unitOfWork.RoleRepository.GetRoleByRoleName("DRIVER");
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(idDriver);
-            //await _unitOfWork.UserRoleRepository.AddRoleForUser(user, role);
-            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            if (!isSuccess)
-            {
-                result.AddError(ErrorCode.ServerError, "Can not save Role to Database");
-            }
-            
-        }
-        catch(Exception ex)
-        {
-            result.AddUnknownError(ex.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
-        return result;
-    }
 }
 
 
