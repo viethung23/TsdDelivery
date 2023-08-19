@@ -42,18 +42,6 @@ public class UserController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> RegisterToDriver(Guid id)
-    {
-        var response = await _userService.RegisterDriver(id);
-
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("SUCCESS");
-    }
-
-    [HttpPost]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     { 
         var response = await _userService.Login(request);
