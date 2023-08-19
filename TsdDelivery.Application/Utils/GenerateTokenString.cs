@@ -10,7 +10,7 @@ namespace TsdDelivery.Application.Utils;
 
 public static class GenerateTokenString
 {
-    public static string? GenerateJsonWebToken(this User user, JwtSettings jwtSettings, DateTime now,List<string?> roles)
+    public static string? GenerateJsonWebToken(this User user, JwtSettings jwtSettings, DateTime now)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -20,7 +20,9 @@ public static class GenerateTokenString
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim("PhoneNumber", user.PhoneNumber),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim("Roles", roles != null ? JsonSerializer.Serialize(roles) : string.Empty,JsonClaimValueTypes.JsonArray)
+            //new Claim("Roles", roles != null ? JsonSerializer.Serialize(roles) : string.Empty,JsonClaimValueTypes.JsonArray)
+            new Claim("Role",user.Role.RoleName),
+            new Claim("RoleId",user.Role.Id.ToString()),
         };
 
         var token = new JwtSecurityToken(

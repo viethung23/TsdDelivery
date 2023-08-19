@@ -21,5 +21,6 @@ public class UserLoginResponse
     public DateTime CreationDate { get; set; }
     public Guid? CreatedBy { get; set; }
     public DateTime? ModificationDate { get; set; }
+    public string RoleName { get; set; }
     public string? Token { get; set; }
 }

@@ -5,7 +5,7 @@ namespace TsdDelivery.Application.Repositories;
 
 public interface IGenericRepository<TEntity> where TEntity : BaseEntity
 {
-    Task<List<TEntity>> GetAllAsync();
+    Task<List<TEntity>> GetAllAsync(string[] includes = null);
     Task<TEntity?> GetByIdAsync(Guid id);
     Task<TEntity?> AddAsync(TEntity entity);
     Task Update(TEntity entity);
