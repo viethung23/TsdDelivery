@@ -1,11 +1,8 @@
 ﻿using Azure;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography.Xml;
+using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.User.Request;
-using TsdDelivery.Application.Models.User.Response;
-using TsdDelivery.Application.Services;
 
 namespace TsdDelivery.Api.Controllers;
 
@@ -30,6 +27,7 @@ public class UserController : BaseController
     }
 
     [HttpPost]
+    [ValidateModel]
     public async Task<IActionResult> Register([FromBody] UserCreateUpdate request)
     {
         var response = await _userService.Register(request);
@@ -42,8 +40,9 @@ public class UserController : BaseController
     }
 
     [HttpPost]
+    [ValidateModel]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    { 
+    {
         var response = await _userService.Login(request);
 
         if (response.IsError)
