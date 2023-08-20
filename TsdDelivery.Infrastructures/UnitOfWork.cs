@@ -22,8 +22,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IRoleRepository RoleRepository => new RoleRepository(_appDbContext,_currentTime,_claimsService);
 
-    //public IUserRoleRepository UserRoleRepository => new UserRoleRepository(_appDbContext);
-
+    
     public async Task<int> SaveChangeAsync()
     {
         return await _appDbContext.SaveChangesAsync();

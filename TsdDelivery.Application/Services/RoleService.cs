@@ -19,7 +19,7 @@ public class RoleService : IRoleService
     {
         var result = new OperationResult<RoleResponse>();
 
-        try
+        /*try
         {
             var role = await _unitOfWork.RoleRepository.GetRoleByRoleName(request.RoleName);
 
@@ -45,6 +45,28 @@ public class RoleService : IRoleService
         finally
         {
             _unitOfWork.Dispose();
+        }
+        return result;*/
+        using (var transaction = _unitOfWork.BeginTransaction())
+        {
+            try
+            {
+                /*_unitOfWork.Users.Add(new UserModel("dummy username"));
+                _unitOfWork.SaveChanges();
+                _unitOfWork.Addresses.Add(new AddressModel("dummy address"));
+                _unitOfWork.SaveChanges();*/
+
+                var entity = new Role() { RoleName = request.RoleName };
+                await _unitOfWork.RoleRepository.AddAsync(entity);
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                Console.WriteLine("đến đây là đã SaveChange");
+
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+            }
         }
         return result;
     }
