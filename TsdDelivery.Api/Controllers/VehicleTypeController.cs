@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Metadata;
+﻿using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
-using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.VehicleType.Request;
+using TsdDelivery.Application.Interface;
 
 namespace TsdDelivery.Api.Controllers;
 
