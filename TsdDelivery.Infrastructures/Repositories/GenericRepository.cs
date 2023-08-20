@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Repositories;
@@ -116,5 +117,28 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     public async Task Delete(TEntity entity)
     {
         _dbSet.Remove(entity);
+    }
+
+    public Task<TEntity?> GetSingleByCondition(Expression<Func<TEntity, bool>> expression, string[] includes = null)
+    {
+        dynamic result;
+        if (includes != null && includes.Count() > 0)
+        {
+            var query = _dbSet.Include(includes.First());
+            foreach (var include in includes.Skip(1))
+                query = query.Include(include);
+            result = query.FirstOrDefaultAsync(expression);
+            // todo should throw exception when not found
+            if (result == null)
+                throw new Exception($"Not Found by ID");
+            return result;
+        }
+        
+        result = _dbSet.FirstOrDefaultAsync(expression);
+        if(result == null)
+        {
+            throw new Exception($"Not Found by ID");
+        }
+        return result;
     }
 }

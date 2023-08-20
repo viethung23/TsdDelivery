@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection.Metadata;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.User.Request;
@@ -67,6 +68,17 @@ public class UserController : BaseController
     public async Task<IActionResult> UploadAvatar(Guid id, IFormFile blob)
     {
         var response = await _userService.UploadImage(id, blob);
+        if (response.IsError)
+        {
+            return HandleErrorResponse(response.Errors);
+        }
+        return Ok(response.Payload);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUserById(Guid id)
+    {
+        var response = await _userService.GetUserById(id);
         if (response.IsError)
         {
             return HandleErrorResponse(response.Errors);
