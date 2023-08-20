@@ -1,17 +1,11 @@
-﻿using Azure;
-using Azure.Storage;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.User.Request;
 using TsdDelivery.Application.Models.User.Response;
-using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Utils;
 using TsdDelivery.Domain.Entities;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace TsdDelivery.Application.Services;
 
@@ -19,19 +13,16 @@ public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentTime _currentTime;
+    private readonly IBlobStorageAzureService _blobStorageAzureService;
     private readonly AppConfiguration _appConfiguration;
-    private readonly BlobContainerClient _fileContainer;
-    public UserService(IUnitOfWork unitOfWork, ICurrentTime currentTime, AppConfiguration appConfiguration)
+    public UserService(IUnitOfWork unitOfWork, ICurrentTime currentTime
+        ,IBlobStorageAzureService blobStorageAzureService
+        ,AppConfiguration appConfiguration)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
+        _blobStorageAzureService = blobStorageAzureService;
         _appConfiguration = appConfiguration;
-
-        var credential = new StorageSharedKeyCredential(_appConfiguration.FileService.StorageAccount, _appConfiguration.FileService.Key);
-        var blobUri = $"https://{_appConfiguration.FileService.StorageAccount}.blob.core.windows.net";
-        var blobServiceClient = new BlobServiceClient(new Uri(blobUri),credential);
-        _fileContainer = blobServiceClient.GetBlobContainerClient("images");
-
     }
 
     public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
@@ -216,16 +207,8 @@ public class UserService : IUserService
         {
 
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            
-
-            BlobClient client = _fileContainer.GetBlobClient(blob.FileName);
-
-            await using (Stream? data = blob.OpenReadStream())
-            {
-                await client.UploadAsync(data, httpHeaders: new BlobHttpHeaders { ContentType = "image/png" }, conditions: null);
-            }
-
-            user.AvatarUrl = client.Uri.AbsoluteUri;
+            var imageUrl = await _blobStorageAzureService.SaveImageAsync(blob);
+            user.AvatarUrl = imageUrl;
             await _unitOfWork.UserRepository.Update(user);
 
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
@@ -236,7 +219,7 @@ public class UserService : IUserService
             var userResponse = new UserResponse()
             {
                 Id = user.Id,
-                AvatarUrl = client.Uri.AbsoluteUri,
+                AvatarUrl = imageUrl,
                 CreatedBy = user.CreatedBy,
                 CreationDate = user.CreationDate,
                 Email = user.Email,
@@ -256,6 +239,38 @@ public class UserService : IUserService
 
     }
 
+    public async Task<OperationResult<UserResponse>> GetUserById(Guid id)
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            //var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Id == id, new[] {"Role"} );
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            var userResponse = new UserResponse
+            {
+                FullName = user.FullName,
+                AvatarUrl = user.AvatarUrl,
+                CreatedBy= user.CreatedBy,
+                CreationDate = user.CreationDate,
+                Email = user.Email,
+                Id = user.Id,
+                ModificationDate = user.ModificationDate,
+                PhoneNumber = user.PhoneNumber,
+                RoleName = ""                       //user.Role == null ? user.Role.RoleName : ""
+            };
+
+            result.Payload = userResponse;
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
 }
 
 

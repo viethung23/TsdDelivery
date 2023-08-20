@@ -1,4 +1,5 @@
-﻿using TsdDelivery.Application.Commons;
+﻿using System.Linq.Expressions;
+using TsdDelivery.Application.Commons;
 using TsdDelivery.Domain.Entities;
 
 namespace TsdDelivery.Application.Repositories;
@@ -14,6 +15,8 @@ public interface IGenericRepository<TEntity> where TEntity : BaseEntity
     Task Delete(TEntity entity);
     Task AddRangeAsync(List<TEntity> entities);
     Task SoftRemoveRange(List<TEntity> entities);
+
+    Task<TEntity?> GetSingleByCondition(Expression<Func<TEntity, bool>> expression, string[] includes = null);
 
     Task<Pagination<TEntity>> ToPagination(int pageNumber = 0, int pageSize = 10);
 }

@@ -18,18 +18,17 @@ public class RoleService : IRoleService
     public async Task<OperationResult<RoleResponse>> CreateRole(RoleCreateUpdate request)
     {
         var result = new OperationResult<RoleResponse>();
-
-        /*try
+        try
         {
             var role = await _unitOfWork.RoleRepository.GetRoleByRoleName(request.RoleName);
 
-            if(role is not null)
+            if (role is not null)
             {
                 result.AddError(ErrorCode.ValidationError, string.Format("The Role Name [{0}] already exit", request.RoleName));
                 return result;
             }
 
-            var entity = new Role() { RoleName = request.RoleName};
+            var entity = new Role() { RoleName = request.RoleName };
             await _unitOfWork.RoleRepository.AddAsync(entity);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess)
@@ -45,28 +44,6 @@ public class RoleService : IRoleService
         finally
         {
             _unitOfWork.Dispose();
-        }
-        return result;*/
-        using (var transaction = _unitOfWork.BeginTransaction())
-        {
-            try
-            {
-                /*_unitOfWork.Users.Add(new UserModel("dummy username"));
-                _unitOfWork.SaveChanges();
-                _unitOfWork.Addresses.Add(new AddressModel("dummy address"));
-                _unitOfWork.SaveChanges();*/
-
-                var entity = new Role() { RoleName = request.RoleName };
-                await _unitOfWork.RoleRepository.AddAsync(entity);
-                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-                Console.WriteLine("đến đây là đã SaveChange");
-
-                transaction.Commit();
-            }
-            catch (Exception)
-            {
-                transaction.Rollback();
-            }
         }
         return result;
     }

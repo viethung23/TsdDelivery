@@ -13,4 +13,5 @@ public interface IUserService
     public Task<OperationResult<UserLoginResponse>> Login(LoginRequest query);
     public Task<OperationResult<UserResponse>> DeleteUser(Guid id);
     public Task<OperationResult<UserResponse>> UploadImage(Guid id,IFormFile blob);
+    public Task<OperationResult<UserResponse>> GetUserById(Guid id);
 }
