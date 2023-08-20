@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services;
 
@@ -8,7 +8,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddWebAPIService(this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers(config =>
+        {
+            config.Filters.Add(typeof(TsdDeliveryExceptionHandler));
+        });
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
         //services.AddHealthChecks();
@@ -17,6 +20,8 @@ public static class DependencyInjection
         //services.AddSingleton<Stopwatch>();
         services.AddScoped<IClaimsService, ClaimsService>();
         services.AddHttpContextAccessor();
+        /*services.AddScoped<ValidateGuidAttribute>();
+        services.AddScoped<ValidateModelAttribute>();*/
         //services.AddFluentValidationAutoValidation();
         //services.AddFluentValidationClientsideAdapters();
 

@@ -7,7 +7,6 @@ public interface IUnitOfWork : IDisposable
 {
     public IUserRepository UserRepository { get; }
     public IRoleRepository RoleRepository { get; }
-    //public IUserRoleRepository UserRoleRepository { get; }
 
     public Task<int> SaveChangeAsync();
     IDbContextTransaction BeginTransaction();
