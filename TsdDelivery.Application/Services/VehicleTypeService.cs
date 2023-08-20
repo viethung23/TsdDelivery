@@ -3,16 +3,15 @@ using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.VehicleType.Request;
 using TsdDelivery.Application.Models.VehicleType.Response;
-using TsdDelivery.Application.Repositories;
 using TsdDelivery.Domain.Entities;
 
 namespace TsdDelivery.Application.Services;
 
-public class VehicleService : IVehicleTypeService
+public class VehicleTypeService : IVehicleTypeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IBlobStorageAzureService _blobStorageAzureService;
-    public VehicleService(IUnitOfWork unitOfWork, IBlobStorageAzureService blobStorageAzureService)
+    public VehicleTypeService(IUnitOfWork unitOfWork, IBlobStorageAzureService blobStorageAzureService)
     {
         _unitOfWork = unitOfWork;
         _blobStorageAzureService = blobStorageAzureService;

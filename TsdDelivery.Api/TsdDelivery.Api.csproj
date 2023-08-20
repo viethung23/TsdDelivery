@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TsdDelivery.Application\TsdDelivery.Application.csproj" />
     <ProjectReference Include="..\TsdDelivery.Infrastructures\TsdDelivery.Infrastructures.csproj" />
   </ItemGroup>
 
