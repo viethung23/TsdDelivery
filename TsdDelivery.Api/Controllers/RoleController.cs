@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.Role.Request;
 
@@ -27,6 +28,7 @@ public class RoleController : BaseController
     }
 
     [HttpPost]
+    [ValidateModel]
     public async Task<IActionResult> CreateRole(RoleCreateUpdate request)
     {
         var response = await _roleService.CreateRole(request);
