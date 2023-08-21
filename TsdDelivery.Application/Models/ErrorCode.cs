@@ -14,17 +14,8 @@ public enum ErrorCode
     DatabaseOperationException = 203,
 
     //Application errors should be in the range 300 - 399
-    PostUpdateNotPossible = 300,
-    PostDeleteNotPossible = 301,
-    InteractionRemovalNotAuthorized = 302,
-    IdentityUserAlreadyExists = 303,
     IdentityUserDoesNotExist = 304,
     IncorrectPassword = 305,
-    UnauthorizedAccountRemoval = 306,
-    CommentRemovalNotAuthorized = 307,
-    FriendRequestAcceptNotPossible = 308,
-    FriendRequestRejectNotPossible = 309,
-
-
+        
     UnknownError = 999
 }

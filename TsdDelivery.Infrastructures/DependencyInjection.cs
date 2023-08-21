@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TsdDelivery.Application.Interface;
-using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Services;
 using TsdDelivery.Application;
-using TsdDelivery.Infrastructures.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace TsdDelivery.Infrastructures;
@@ -18,7 +16,8 @@ public static class DependencyInjection
         // add service
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
-        services.AddScoped<IVehicleTypeService,VehicleService>();
+        services.AddScoped<IVehicleTypeService,VehicleTypeService>();
+        services.AddScoped<IVehicleService,VehicleService>();
         services.AddScoped<IBlobStorageAzureService, BlobStorageAzureService>();
 
 

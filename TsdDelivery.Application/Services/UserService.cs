@@ -35,14 +35,6 @@ public class UserService : IUserService
 
             var users = await _unitOfWork.UserRepository.GetAllAsync(role);
             
-
-            if (users is null)
-            {
-                result.AddError(ErrorCode.NotFound
-                    , string.Format($"not found {0}", new string("hahaha")));
-                return result;
-            }
-
             var listUserResponse = new List<UserResponse>();
             foreach (var user in users)
             {

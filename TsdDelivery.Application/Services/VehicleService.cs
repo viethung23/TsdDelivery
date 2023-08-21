@@ -1,54 +1,54 @@
 ﻿using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
-using TsdDelivery.Application.Models.VehicleType.Request;
-using TsdDelivery.Application.Models.VehicleType.Response;
-using TsdDelivery.Application.Repositories;
+using TsdDelivery.Application.Models.Vehicle.request;
+using TsdDelivery.Application.Models.Vehicle.Response;
 using TsdDelivery.Domain.Entities;
 
 namespace TsdDelivery.Application.Services;
 
-public class VehicleService : IVehicleTypeService
+public class VehicleService : IVehicleService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IBlobStorageAzureService _blobStorageAzureService;
-    public VehicleService(IUnitOfWork unitOfWork, IBlobStorageAzureService blobStorageAzureService)
+    public VehicleService(IUnitOfWork unitOfWork, IBlobStorageAzureService lobStorageAzureService)
     {
         _unitOfWork = unitOfWork;
-        _blobStorageAzureService = blobStorageAzureService;
-
+        _blobStorageAzureService = lobStorageAzureService;
     }
-
-    public async Task<OperationResult<VehicleTypeResponse>> CreateVehicleType(CreateVehicleType request, IFormFile? blob = null)
+    public async Task<OperationResult<VehicleResponse>> CreateVehicle(CreateVehicle request, IFormFile blob = null)
     {
-        var result = new OperationResult<VehicleTypeResponse>();
-
+        var result = new OperationResult<VehicleResponse>();
         try
         {
-            var entity = new VehicleType()
+            //var user = await _unitOfWork.UserRepository.GetByIdAsync(Guid.Parse(request.UserId));
+            var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Id == Guid.Parse(request.UserId),new []{"Role"});
+            
+            if (user is null || !user.Role.RoleName.Equals("Driver"))
             {
-                VehicleTypeName = request.VehicleTypeName,
+                result.AddError(ErrorCode.ServerError,$"Can not create vehicle with UserId: [{request.UserId}], check id or Role");
+                return result;
+            }
+            
+            var vehicleType = await _unitOfWork.vehicleTypeReposiory.GetByIdAsync(Guid.Parse(request.VehicleTypeId));
+
+            var vehicle = new Vehicle()
+            {
+                NameVehicle = request.NameVehicle,
                 Description = request.Description,
+                LicensePlate = request.LicensePlate,
+                VehicleLoad = request.VehicleLoad,
+                User = user,
+                VehicleType = vehicleType,
             };
-            if(blob != null)
+
+            if (blob != null)
             {
-                entity.VehicleTypeImage = await _blobStorageAzureService.SaveImageAsync(blob);
+                vehicle.ImageVehicle = await _blobStorageAzureService.SaveImageAsync(blob);
             }
 
-            await _unitOfWork.vehicleTypeReposiory.AddAsync(entity);
-            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            if(!isSuccess)
-            {
-                throw new Exception();
-            }
-            var vehicleTypeRespone = new VehicleTypeResponse()
-            {
-                Id = entity.Id,
-                VehicleTypeName = entity.VehicleTypeName,
-                Description= entity.Description,
-                VehicleTypeImage = entity.VehicleTypeImage
-            };
-            result.Payload = vehicleTypeRespone;
+            await _unitOfWork.VehicleRepository.AddAsync(vehicle);
+            await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception ex)
         {
@@ -61,52 +61,51 @@ public class VehicleService : IVehicleTypeService
         return result;
     }
 
-    public async Task<OperationResult<VehicleTypeResponse>> DeleteVehicleType(Guid id)
+    public async Task<OperationResult<VehicleResponse>> DeleteVehicle(Guid id)
     {
-        var result = new OperationResult<VehicleTypeResponse>();
-
+        var result = new OperationResult<VehicleResponse>();
         try
         {
-            var entity = await _unitOfWork.vehicleTypeReposiory.GetByIdAsync(id);
-            await _unitOfWork.vehicleTypeReposiory.Delete(entity);
+            var vehicle = await _unitOfWork.VehicleRepository.GetByIdAsync(id);
+            await _unitOfWork.VehicleRepository.Delete(vehicle);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            if(!isSuccess) { throw new Exception(); }
+            if (!isSuccess) throw new Exception();
         }
-        catch(Exception ex)
+        catch (Exception e)
         {
-            result.AddUnknownError(ex.Message);
+            result.AddUnknownError(e.Message);
         }
         finally
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
-    public async Task<OperationResult<List<VehicleTypeResponse>>> GetAllVehicleType()
+    public async Task<OperationResult<List<VehicleResponse>>> GetAllVehicle()
     {
-        var result = new OperationResult<List<VehicleTypeResponse>>();
+        var result = new OperationResult<List<VehicleResponse>>();
 
         try
         {
-            var vType = await _unitOfWork.vehicleTypeReposiory.GetAllAsync();
-            var list = new List<VehicleTypeResponse>();
-
-            foreach ( var vehicleType in vType)
+            var vehicles = await _unitOfWork.VehicleRepository.GetAllAsync();
+            var list = new List<VehicleResponse>();
+            foreach (var vehicle in vehicles)
             {
-                var vehiscleResponse = new VehicleTypeResponse()
+                var vResponse = new VehicleResponse
                 {
-                    Id = vehicleType.Id,
-                    VehicleTypeName = vehicleType.VehicleTypeName,
-                    VehicleTypeImage = vehicleType.VehicleTypeImage,
-                    Description = vehicleType.Description,
+                    Id = vehicle.Id,
+                    NameVehicle = vehicle.NameVehicle,
+                    Description = vehicle.Description,
+                    ImageVehicle = vehicle.ImageVehicle,
+                    LicensePlate = vehicle.LicensePlate,
                 };
-                list.Add(vehiscleResponse);
+                list.Add(vResponse);
             }
             result.Payload = list;
-
-
-        }catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
         }
