@@ -55,10 +55,10 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         var result = await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
         // todo should throw exception when not found
         if (result == null)
-            throw new Exception($"Not Found by ID: [{id}]");
+            throw new Exception($"Not Found by ID: [{id}] of [{typeof(TEntity).Name}]");
         return result;
     }
-
+    
     public async Task SoftRemove(TEntity entity)
     {
         entity.IsDeleted = true;
@@ -121,24 +121,13 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
 
     public Task<TEntity?> GetSingleByCondition(Expression<Func<TEntity, bool>> expression, string[] includes = null)
     {
-        dynamic result;
         if (includes != null && includes.Count() > 0)
         {
             var query = _dbSet.Include(includes.First());
             foreach (var include in includes.Skip(1))
                 query = query.Include(include);
-            result = query.FirstOrDefaultAsync(expression);
-            // todo should throw exception when not found
-            if (result == null)
-                throw new Exception($"Not Found by ID");
-            return result;
+            return query.FirstOrDefaultAsync(expression);
         }
-        
-        result = _dbSet.FirstOrDefaultAsync(expression);
-        if(result == null)
-        {
-            throw new Exception($"Not Found by ID");
-        }
-        return result;
+        return _dbSet.FirstOrDefaultAsync(expression);
     }
 }

@@ -10,6 +10,8 @@ public class ShippingRateConfig : IEntityTypeConfiguration<ShippingRate>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
+        
+        builder.Property(x => x.Price).HasColumnType("decimal(18,2)");
 
         builder.HasOne(x => x.Service)
             .WithMany(x => x.shippingRates)

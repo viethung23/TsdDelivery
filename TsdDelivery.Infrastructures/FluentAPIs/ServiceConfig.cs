@@ -10,7 +10,9 @@ public class ServiceConfig : IEntityTypeConfiguration<Service>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
-
+        
+        builder.Property(x => x.Price).HasColumnType("decimal(18,2)");
+        
         builder.HasOne(x => x.VehicleType)
             .WithMany(s => s.services)
             .HasForeignKey(x => x.VehicleTypeId);

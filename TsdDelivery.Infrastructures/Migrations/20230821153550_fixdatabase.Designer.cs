@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TsdDelivery.Infrastructures;
 
@@ -11,9 +12,11 @@ using TsdDelivery.Infrastructures;
 namespace TsdDelivery.Infrastructures.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230821153550_fixdatabase")]
+    partial class fixdatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -405,11 +408,11 @@ namespace TsdDelivery.Infrastructures.Migrations
             modelBuilder.Entity("TsdDelivery.Domain.Entities.Reservation", b =>
                 {
                     b.HasOne("TsdDelivery.Domain.Entities.User", "Driver")
-                        .WithMany("ReservationDrivers")
+                        .WithMany()
                         .HasForeignKey("DriverId");
 
                     b.HasOne("TsdDelivery.Domain.Entities.User", "User")
-                        .WithMany("ReservationUsers")
+                        .WithMany("Reservations")
                         .HasForeignKey("UserId");
 
                     b.OwnsOne("TsdDelivery.Domain.Entities.Goods", "Goods", b1 =>
@@ -530,9 +533,7 @@ namespace TsdDelivery.Infrastructures.Migrations
 
             modelBuilder.Entity("TsdDelivery.Domain.Entities.User", b =>
                 {
-                    b.Navigation("ReservationDrivers");
-
-                    b.Navigation("ReservationUsers");
+                    b.Navigation("Reservations");
 
                     b.Navigation("Vehicles");
                 });

@@ -24,6 +24,8 @@ public class UnitOfWork : IUnitOfWork
 
     public IVehicleTypeReposiory vehicleTypeReposiory => new VehicleTypeRepository(_appDbContext, _claimsService, _currentTime);
 
+    public IVehicleRepository VehicleRepository => new VehicleRepository(_appDbContext,_currentTime,_claimsService);
+
     public async Task<int> SaveChangeAsync()
     {
         return await _appDbContext.SaveChangesAsync();
