@@ -21,7 +21,6 @@ public class VehicleService : IVehicleService
         var result = new OperationResult<VehicleResponse>();
         try
         {
-            //var user = await _unitOfWork.UserRepository.GetByIdAsync(Guid.Parse(request.UserId));
             var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Id == Guid.Parse(request.UserId),new []{"Role"});
             
             if (user is null || !user.Role.RoleName.Equals("Driver"))
