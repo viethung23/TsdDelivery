@@ -29,7 +29,7 @@ public class VehicleService : IVehicleService
                 return result;
             }
             
-            var vehicleType = await _unitOfWork.vehicleTypeReposiory.GetByIdAsync(Guid.Parse(request.VehicleTypeId));
+            var vehicleType = await _unitOfWork.VehicleTypeReposiory.GetByIdAsync(Guid.Parse(request.VehicleTypeId));
 
             var vehicle = new Vehicle()
             {

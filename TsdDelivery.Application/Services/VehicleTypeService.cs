@@ -34,7 +34,7 @@ public class VehicleTypeService : IVehicleTypeService
                 entity.VehicleTypeImage = await _blobStorageAzureService.SaveImageAsync(blob);
             }
 
-            await _unitOfWork.vehicleTypeReposiory.AddAsync(entity);
+            await _unitOfWork.VehicleTypeReposiory.AddAsync(entity);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if(!isSuccess)
             {
@@ -66,8 +66,8 @@ public class VehicleTypeService : IVehicleTypeService
 
         try
         {
-            var entity = await _unitOfWork.vehicleTypeReposiory.GetByIdAsync(id);
-            await _unitOfWork.vehicleTypeReposiory.Delete(entity);
+            var entity = await _unitOfWork.VehicleTypeReposiory.GetByIdAsync(id);
+            await _unitOfWork.VehicleTypeReposiory.Delete(entity);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if(!isSuccess) { throw new Exception(); }
         }
@@ -88,7 +88,7 @@ public class VehicleTypeService : IVehicleTypeService
 
         try
         {
-            var vType = await _unitOfWork.vehicleTypeReposiory.GetAllAsync();
+            var vType = await _unitOfWork.VehicleTypeReposiory.GetAllAsync();
             var list = new List<VehicleTypeResponse>();
 
             foreach ( var vehicleType in vType)
