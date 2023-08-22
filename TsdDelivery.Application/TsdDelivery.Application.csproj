@@ -26,4 +26,9 @@
     <ProjectReference Include="..\TsdDelivery.Domain\TsdDelivery.Domain.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Folder Include="Models\ShippingRate\Response\" />
+  </ItemGroup>
+
 </Project>

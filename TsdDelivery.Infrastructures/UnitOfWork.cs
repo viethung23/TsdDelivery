@@ -22,9 +22,12 @@ public class UnitOfWork : IUnitOfWork
 
     public IRoleRepository RoleRepository => new RoleRepository(_appDbContext,_currentTime,_claimsService);
 
-    public IVehicleTypeReposiory vehicleTypeReposiory => new VehicleTypeRepository(_appDbContext, _claimsService, _currentTime);
+    public IVehicleTypeReposiory VehicleTypeReposiory => new VehicleTypeRepository(_appDbContext, _claimsService, _currentTime);
 
     public IVehicleRepository VehicleRepository => new VehicleRepository(_appDbContext,_currentTime,_claimsService);
+    public IServiceRepository ServiceRepository => new ServiceRepository(_appDbContext, _currentTime, _claimsService);
+
+    public IShippingRateRepository ShippingRateRepository => new ShippingRateRepository(_appDbContext, _currentTime, _claimsService);
 
     public async Task<int> SaveChangeAsync()
     {

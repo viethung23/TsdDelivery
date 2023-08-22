@@ -15,7 +15,7 @@ public class ShippingRateConfig : IEntityTypeConfiguration<ShippingRate>
 
         builder.HasOne(x => x.Service)
             .WithMany(x => x.shippingRates)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(x => x.ServiceId);
-
     }
 }
