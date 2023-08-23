@@ -76,6 +76,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         }
         _dbSet.UpdateRange(entities);
     }
+    
 
     public async Task<Pagination<TEntity>> ToPagination(int pageNumber = 0, int pageSize = 10)
     {
@@ -129,5 +130,18 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
             return query.FirstOrDefaultAsync(expression);
         }
         return _dbSet.FirstOrDefaultAsync(expression);
+    }
+    
+    public Task<List<TEntity>> GetMulti(Expression<Func<TEntity, bool>> predicate, string[] includes = null)
+    {
+        //HANDLE INCLUDES FOR ASSOCIATED OBJECTS IF APPLICABLE
+        if (includes != null && includes.Count() > 0)
+        {
+            var query = _dbSet.Include(includes.First());
+            foreach (var include in includes.Skip(1))
+                query = query.Include(include);
+            return query.Where(predicate).ToListAsync();
+        }
+        return _dbSet.Where(predicate).ToListAsync();
     }
 }

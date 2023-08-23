@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IVehicleService,VehicleService>();
         services.AddScoped<IBlobStorageAzureService, BlobStorageAzureService>();
         services.AddScoped<IService, ServiceService>();
+        services.AddScoped<IShippingRateService, ShippingRateService>();
 
 
         // ATTENTION: if you do migration please check file README.md
