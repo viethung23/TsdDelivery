@@ -197,8 +197,11 @@ public class UserService : IUserService
 
         try
         {
-
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.UserRepository.GetSingleByCondition(u => u.Id == id, new []{"Role"});
+            if (user is null)
+            {
+                throw new Exception($"Not Found by ID: [{id}]");
+            }
             var imageUrl = await _blobStorageAzureService.SaveImageAsync(blob);
             user.AvatarUrl = imageUrl;
             await _unitOfWork.UserRepository.Update(user);

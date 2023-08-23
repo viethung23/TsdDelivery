@@ -23,7 +23,7 @@ public class VehicleService : IVehicleService
         {
             var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Id == Guid.Parse(request.UserId),new []{"Role"});
             
-            if (user is null || !user.Role.RoleName.Equals("Driver"))
+            if (user is null || !user.Role.RoleName.Equals("DRIVER"))
             {
                 result.AddError(ErrorCode.ServerError,$"Can not create vehicle with UserId: [{request.UserId}], check id or Role");
                 return result;
@@ -99,6 +99,7 @@ public class VehicleService : IVehicleService
                     Description = vehicle.Description,
                     ImageVehicle = vehicle.ImageVehicle,
                     LicensePlate = vehicle.LicensePlate,
+                    VehicleLoad = vehicle.VehicleLoad
                 };
                 list.Add(vResponse);
             }
