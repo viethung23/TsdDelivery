@@ -17,6 +17,6 @@ public interface IGenericRepository<TEntity> where TEntity : BaseEntity
     Task SoftRemoveRange(List<TEntity> entities);
 
     Task<TEntity?> GetSingleByCondition(Expression<Func<TEntity, bool>> expression, string[] includes = null);
-
+    Task<List<TEntity>> GetMulti(Expression<Func<TEntity, bool>> predicate, string[] includes = null);
     Task<Pagination<TEntity>> ToPagination(int pageNumber = 0, int pageSize = 10);
 }
