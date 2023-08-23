@@ -8,5 +8,12 @@
       <jdbc-url>Server=localhost,1433;Database=tsdDB</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="TsdDeliveryDb@202.92.4.186" uuid="59e0a0b0-6ad0-4895-98c8-4f83857ffeab">
+      <driver-ref>sqlserver.jb</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.jetbrains.jdbc.sqlserver.SqlServerDriver</jdbc-driver>
+      <jdbc-url>Server=202.92.4.186,1433;Database=TsdDeliveryDb</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
