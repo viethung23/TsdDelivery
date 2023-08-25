@@ -21,6 +21,7 @@ public class ReservationConfig : IEntityTypeConfiguration<Reservation>
             .Property(x => x.Width).HasColumnType("decimal(18,2)");
         
         builder.Property(x => x.TotallPrice).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.Distance).HasColumnType("decimal(18,2)");
 
         builder.HasOne(u => u.Driver)
             .WithMany(r => r.ReservationDrivers)

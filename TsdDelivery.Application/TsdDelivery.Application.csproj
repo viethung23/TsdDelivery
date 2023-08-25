@@ -28,9 +28,6 @@
 
 
 
-  <ItemGroup>
-    <Folder Include="Models\Reservation\Request\" />
-    <Folder Include="Models\Reservation\Response\" />
-  </ItemGroup>
+
 
 </Project>

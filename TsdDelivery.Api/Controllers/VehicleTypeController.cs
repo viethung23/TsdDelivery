@@ -17,11 +17,7 @@ public class VehicleTypeController : BaseController
     public async Task<IActionResult> GetAllVehicleType()
     {
         var response = await _vehicleTypeService.GetAllVehicleType();
-        if(response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpPost]
@@ -30,11 +26,7 @@ public class VehicleTypeController : BaseController
     {
         var request = new CreateVehicleType { VehicleTypeName = name,Description = description };
         var response = await _vehicleTypeService.CreateVehicleType(request, blob);
-        if(response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpDelete]
@@ -42,10 +34,6 @@ public class VehicleTypeController : BaseController
     public async Task<IActionResult> DeleteVehicleType(Guid id)
     {
         var response = await _vehicleTypeService.DeleteVehicleType(id);
-        if(response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Delete Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
 }

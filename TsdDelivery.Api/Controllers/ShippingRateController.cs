@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.ShippingRate.Request;
 
@@ -24,35 +25,24 @@ public class ShippingRateController : BaseController
     }
 
     [HttpPost]
+    [ValidateModel]
     public async Task<IActionResult> CreateShippingRate(CreateShippingRateRequest request)
     {
         var response = await _shippingRateService.CreateShippingRate(request);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Create Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Create Success");
     }
 
     [HttpDelete]
     public async Task<IActionResult> DeleteShippingRate(Guid shippingRateId,Guid serviceId)
     {
         var response = await _shippingRateService.DeleteShippingRate(shippingRateId, serviceId);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Delete Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
 
     [HttpGet]
     public async Task<IActionResult> GetShippingRatesByService(Guid serviceId)
     {
         var response = await _shippingRateService.GetShippingRatesByService(serviceId);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

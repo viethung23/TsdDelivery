@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.Service.Request;
 
@@ -16,32 +17,21 @@ public class ServiceController : BaseController
     public async Task<IActionResult> GetAllService()
     {
         var response = await _service.GetAllService();
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpPost]
+    [ValidateModel]
     public async Task<IActionResult> CreateService(CreateServiceRequest request)
     {
         var response = await _service.CreateService(request);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Create Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Create Success");
     }
 
     [HttpDelete]
     public async Task<IActionResult> DeleteService(Guid serviceId, Guid vehicleTypeId)
     {
         var response = await _service.DeleteService(serviceId,vehicleTypeId);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Delete Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
 }

@@ -9,23 +9,16 @@ namespace TsdDelivery.Api.Controllers;
 public class VehicleController : BaseController
 {
     private readonly IVehicleService _vehicleService;
-    private readonly IBlobStorageAzureService _blobStorageAzureService;
-    public VehicleController(IVehicleService vehicleService, IBlobStorageAzureService blobStorageAzureService)
+    public VehicleController(IVehicleService vehicleService)
     {
         _vehicleService = vehicleService;
-        _blobStorageAzureService = blobStorageAzureService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllVehicle()
     {
         var response = await _vehicleService.GetAllVehicle();
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpPost]
@@ -33,11 +26,7 @@ public class VehicleController : BaseController
     public async Task<IActionResult> CreateVehicle([FromQuery] CreateVehicle request, IFormFile blob = null)
     {
         var response = await _vehicleService.CreateVehicle(request, blob);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Create Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Create Success");
     }
 
 
@@ -46,10 +35,6 @@ public class VehicleController : BaseController
     public async Task<IActionResult> DeleteVehicle(Guid id)
     {
         var response = await _vehicleService.DeleteVehicle(id);
-        if(response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Delete Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
 }

@@ -21,7 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IBlobStorageAzureService, BlobStorageAzureService>();
         services.AddScoped<IService, ServiceService>();
         services.AddScoped<IShippingRateService, ShippingRateService>();
-
+        services.AddScoped<IReservationService, ReservationService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(databaseConnection));
