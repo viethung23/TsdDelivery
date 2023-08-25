@@ -18,6 +18,7 @@ public class ReservationDetailConfig : IEntityTypeConfiguration<ReservationDetai
 
         builder.HasOne(rd => rd.Reservation)
             .WithMany(rd => rd.reservationDetails)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(pk => pk.ReservationId);
     }
 }

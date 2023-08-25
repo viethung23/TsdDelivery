@@ -20,11 +20,7 @@ public class RoleController : BaseController
     {
         var response = await _roleService.GetAllRoles();
 
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpPost]
@@ -32,21 +28,13 @@ public class RoleController : BaseController
     public async Task<IActionResult> CreateRole(RoleCreateUpdate request)
     {
         var response = await _roleService.CreateRole(request);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Success");
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteRole(Guid id)
     {
         var response = await _roleService.DeleteRole(id);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Delete Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
 }
