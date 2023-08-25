@@ -11,6 +11,8 @@ public interface IUnitOfWork : IDisposable
     public IVehicleRepository VehicleRepository { get; }
     public IServiceRepository ServiceRepository { get; }
     public IShippingRateRepository ShippingRateRepository { get; }
+    public IReservationRepository ReservationRepository { get; }
+    public IReservationDetailRepository ReservationDetailRepository { get; }
 
     public Task<int> SaveChangeAsync();
     IDbContextTransaction BeginTransaction();

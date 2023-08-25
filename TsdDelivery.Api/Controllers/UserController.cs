@@ -20,11 +20,7 @@ public class UserController : BaseController
     {
         var response = await _userService.GetAllUsers();
 
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpPost]
@@ -33,11 +29,7 @@ public class UserController : BaseController
     {
         var response = await _userService.Register(request);
 
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("SUCCESS");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("SUCCESS");
     }
 
     [HttpPost]
@@ -46,43 +38,27 @@ public class UserController : BaseController
     {
         var response = await _userService.Login(request);
 
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         var response = await _userService.DeleteUser(id);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok("Delete Success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
 
     [HttpPatch("{id}")]
     public async Task<IActionResult> UploadAvatar(Guid id, IFormFile blob)
     {
         var response = await _userService.UploadImage(id, blob);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetUserById(Guid id)
     {
         var response = await _userService.GetUserById(id);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        return Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

@@ -29,6 +29,10 @@ public class UnitOfWork : IUnitOfWork
 
     public IShippingRateRepository ShippingRateRepository => new ShippingRateRepository(_appDbContext, _currentTime, _claimsService);
 
+    public IReservationRepository ReservationRepository => new ReservationRepository(_appDbContext, _claimsService, _currentTime);
+
+    public IReservationDetailRepository ReservationDetailRepository => new ReservationDetailRepository(_appDbContext, _claimsService, _currentTime);
+
     public async Task<int> SaveChangeAsync()
     {
         return await _appDbContext.SaveChangesAsync();

@@ -12,7 +12,8 @@ public class CreateServiceRequest
     public string ServiceName { get; set; }
     
     [Required]
-    public decimal? Price { get; set; }
+    [Range(0,5000000)]
+    public decimal Price { get; set; }
     
     public string? Description { get; set; }
     public List<ShippingRateDTO?> ShippingRateDtos { get; set; } = new List<ShippingRateDTO?>();
