@@ -28,4 +28,11 @@ public class ReservationController : BaseController
         var response = await _reservationService.CreateReservation(request);
         return (response.IsError) ? HandleErrorResponse(response.Errors) : Ok("Create Success");
     }
+    
+    [HttpPost]
+    [Route("test")]
+    public async Task<IActionResult> Test(CreateReservationRequest request)
+    {
+        return  Ok("test Success");
+    }
 }
