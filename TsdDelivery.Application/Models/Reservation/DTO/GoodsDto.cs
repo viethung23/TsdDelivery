@@ -7,7 +7,7 @@ public class GoodsDto
     public string Name { get; set; }
     
     [Range(0,999999)]
-    public string Weight { get; set; }
+    public decimal? Weight { get; set; }
     
     [Range(0,50)]
     public decimal? Length { get; set; }

@@ -20,6 +20,9 @@ public class ReservationConfig : IEntityTypeConfiguration<Reservation>
         builder.OwnsOne(x => x.Goods)
             .Property(x => x.Width).HasColumnType("decimal(18,2)");
         
+        builder.OwnsOne(x => x.Goods)
+            .Property(x => x.Weight).HasColumnType("decimal(18,2)");
+        
         builder.Property(x => x.TotallPrice).HasColumnType("decimal(18,2)");
         builder.Property(x => x.Distance).HasColumnType("decimal(18,2)");
 
