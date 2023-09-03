@@ -13,6 +13,10 @@ public class VehicleTypeController : BaseController
         _vehicleTypeService = vehicleService;
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetAllVehicleType()
     {
@@ -20,6 +24,13 @@ public class VehicleTypeController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="blob"></param>
+    /// <param name="name"></param>
+    /// <param name="description"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateModel]
     public async Task<IActionResult> CreateVehicleType(IFormFile? blob,  string name, string? description)    
@@ -29,6 +40,11 @@ public class VehicleTypeController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpDelete]
     [ValidateGuid("id")]
     public async Task<IActionResult> DeleteVehicleType(Guid id)

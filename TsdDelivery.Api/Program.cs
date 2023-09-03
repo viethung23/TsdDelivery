@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration.Get<AppConfiguration>();
 
 builder.Services.AddInfrastructuresService(configuration.DatabaseConnection);
-builder.Services.AddWebAPIService();
+builder.Services.AddWebAPIService(configuration.JwtSettings);
 builder.Services.AddSingleton(configuration);
 
 var app = builder.Build();
@@ -17,12 +17,22 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("v1/swagger.json", "TsdDelivery API V1");
+    });
 }
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("v1/swagger.json", "TsdDelivery API V1");
+});
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseStaticFiles();
 
 app.MapControllers();
 

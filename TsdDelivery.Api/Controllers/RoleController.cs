@@ -23,6 +23,12 @@ public class RoleController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateModel]
     public async Task<IActionResult> CreateRole(RoleCreateUpdate request)

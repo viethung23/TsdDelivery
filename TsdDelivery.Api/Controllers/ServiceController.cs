@@ -13,6 +13,10 @@ public class ServiceController : BaseController
         _service = service;
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetAllService()
     {
@@ -20,6 +24,11 @@ public class ServiceController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateModel]
     public async Task<IActionResult> CreateService(CreateServiceRequest request)
@@ -28,6 +37,12 @@ public class ServiceController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Create Success");
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="serviceId"></param>
+    /// <param name="vehicleTypeId"></param>
+    /// <returns></returns>
     [HttpDelete]
     public async Task<IActionResult> DeleteService(Guid serviceId, Guid vehicleTypeId)
     {
