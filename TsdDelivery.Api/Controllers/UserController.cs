@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection.Metadata;
+using Microsoft.AspNetCore.Authorization;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.User.Request;
@@ -14,8 +15,12 @@ public class UserController : BaseController
     {
         _userService = userService;
     }
-
+    
+    /// <summary>
+    ///  Api for Admin
+    /// </summary>
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetAllUsers()
     {
         var response = await _userService.GetAllUsers();
@@ -31,7 +36,7 @@ public class UserController : BaseController
 
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("SUCCESS");
     }
-
+    
     [HttpPost]
     [ValidateModel]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -41,6 +46,11 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {

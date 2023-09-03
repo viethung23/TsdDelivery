@@ -21,6 +21,11 @@ public class ReservationController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Customer
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateModel]
     public async Task<IActionResult> CreateReservation(CreateReservationRequest request)

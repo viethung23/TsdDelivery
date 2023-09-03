@@ -13,6 +13,10 @@ public class ShippingRateController : BaseController
         _shippingRateService = shippingRateService;
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetAllShippingRate()
     {
@@ -24,6 +28,11 @@ public class ShippingRateController : BaseController
         return Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateModel]
     public async Task<IActionResult> CreateShippingRate(CreateShippingRateRequest request)
@@ -32,6 +41,12 @@ public class ShippingRateController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Create Success");
     }
 
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="shippingRateId"></param>
+    /// <param name="serviceId"></param>
+    /// <returns></returns>
     [HttpDelete]
     public async Task<IActionResult> DeleteShippingRate(Guid shippingRateId,Guid serviceId)
     {
@@ -39,6 +54,7 @@ public class ShippingRateController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
 
+    
     [HttpGet]
     public async Task<IActionResult> GetShippingRatesByService(Guid serviceId)
     {
