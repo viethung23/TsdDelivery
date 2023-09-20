@@ -8,4 +8,6 @@ public interface IReservationService
 {
     public Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request);
     public Task<OperationResult<ReservationResponse>> CreateReservation(CreateReservationRequest request);
+    public Task<OperationResult<List<ReservationResponse>>> GetAllReservation();
+    public Task<OperationResult<List<ReservationResponse>>> GetPendingReservation();
 }

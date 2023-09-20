@@ -33,5 +33,36 @@ public class ReservationController : BaseController
         var response = await _reservationService.CreateReservation(request);
         return (response.IsError) ? HandleErrorResponse(response.Errors) : Ok("Create Success");
     }
+
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    public async Task<IActionResult> GetAllReservation()
+    {
+        var response = await _reservationService.GetAllReservation();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    /// <summary>
+    /// Api for driver
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    public async Task<IActionResult> GetPendingReservation()
+    {
+        var response = await _reservationService.GetPendingReservation();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
     
+    /// <summary>
+    /// Api for driver
+    /// </summary>
+    /// <returns></returns>
+    [HttpPatch]
+    public async Task<IActionResult> AcceptReservation()
+    {
+        return Ok();
+    }
 }

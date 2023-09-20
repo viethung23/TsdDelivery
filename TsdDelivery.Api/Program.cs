@@ -10,6 +10,16 @@ var configuration = builder.Configuration.Get<AppConfiguration>();
 builder.Services.AddInfrastructuresService(configuration.DatabaseConnection);
 builder.Services.AddWebAPIService(configuration.JwtSettings);
 builder.Services.AddSingleton(configuration);
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("*")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -29,6 +39,8 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthorization();
 
