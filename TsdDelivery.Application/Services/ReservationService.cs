@@ -1,5 +1,6 @@
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Models.Reservation.DTO;
 using TsdDelivery.Application.Models.Reservation.Request;
 using TsdDelivery.Application.Models.Reservation.Response;
 using TsdDelivery.Domain.Entities;
@@ -92,6 +93,88 @@ public class ReservationService : IReservationService
             }
             return result;
         }
+    }
+
+    public async Task<OperationResult<List<ReservationResponse>>> GetAllReservation()
+    {
+        var result = new OperationResult<List<ReservationResponse>>();
+        try
+        {
+            var reservations = await _unitOfWork.ReservationRepository.GetAllAsync();
+            var list = reservations.Select(x => new ReservationResponse
+                {
+                    Id = x.Id,
+                    RecipientName = x.RecipientName,
+                    RecipientPhone = x.RecipientPhone,
+                    ReciveLocation = x.ReciveLocation,
+                    SendLocation = x.SendLocation,
+                    PickUpDateTime = x.PickUpDateTime,
+                    ReservationStatus = x.ReservationStatus,
+                    TotallPrice = x.TotallPrice,
+                    Distance = x.Distance,
+                    GoodsDto = new GoodsDto
+                    {
+                        Width = x.Goods.Width,
+                        Length = x.Goods.Length,
+                        Name = x.Goods.Name,
+                        Weight = x.Goods.Weight,
+                        Height = x.Goods.Height
+                    }
+                })
+                .ToList();
+
+            result.Payload = list;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<ReservationResponse>>> GetPendingReservation()
+    {
+        var result = new OperationResult<List<ReservationResponse>>();
+        try
+        {
+            var reservations = await _unitOfWork.ReservationRepository.GetMulti(x =>x.ReservationStatus == ReservationStatus.pending);
+            var list = reservations.Select(x => new ReservationResponse
+                {
+                    Id = x.Id,
+                    RecipientName = x.RecipientName,
+                    RecipientPhone = x.RecipientPhone,
+                    ReciveLocation = x.ReciveLocation,
+                    SendLocation = x.SendLocation,
+                    PickUpDateTime = x.PickUpDateTime,
+                    ReservationStatus = x.ReservationStatus,
+                    TotallPrice = x.TotallPrice,
+                    Distance = x.Distance,
+                    GoodsDto = new GoodsDto
+                    {
+                        Width = x.Goods.Width,
+                        Length = x.Goods.Length,
+                        Name = x.Goods.Name,
+                        Weight = x.Goods.Weight,
+                        Height = x.Goods.Height
+                    }
+                })
+                .ToList();
+
+            result.Payload = list;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
     }
 
     private decimal CalculateShippingRateByKm(decimal km, List<ShippingRate> list)
