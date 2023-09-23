@@ -21,14 +21,16 @@ public class VehicleService : IVehicleService
         var result = new OperationResult<VehicleResponse>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Id == Guid.Parse(request.UserId),new []{"Role"});
-            
-            if (user is null || !user.Role.RoleName.Equals("DRIVER"))
+            var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Id == Guid.Parse(request.UserId),
+                new[] { "Role" });
+
+            if (!user.Role.RoleName.Equals("DRIVER"))
             {
-                result.AddError(ErrorCode.ServerError,$"Can not create vehicle with UserId: [{request.UserId}], check id or Role");
+                result.AddError(ErrorCode.ServerError,
+                    $"Can not create vehicle with UserId: [{request.UserId}] because it's not the driver");
                 return result;
             }
-            
+
             var vehicleType = await _unitOfWork.VehicleTypeReposiory.GetByIdAsync(Guid.Parse(request.VehicleTypeId));
 
             var vehicle = new Vehicle()
@@ -48,6 +50,10 @@ public class VehicleService : IVehicleService
 
             await _unitOfWork.VehicleRepository.AddAsync(vehicle);
             await _unitOfWork.SaveChangeAsync();
+        }
+        catch (InvalidOperationException e)
+        {
+            result.AddUnknownError($"Not Found by ID: [{request.UserId}]");
         }
         catch (Exception ex)
         {

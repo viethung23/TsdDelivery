@@ -1,3 +1,4 @@
+using MapsterMapper;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.Service.Request;
@@ -9,9 +10,11 @@ namespace TsdDelivery.Application.Services;
 public class ServiceService : IService
 {
     private readonly IUnitOfWork _unitOfWork;
-    public ServiceService(IUnitOfWork unitOfWork)
+    private readonly IMapper _mapper;
+    public ServiceService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
     
     public async Task<OperationResult<List<ServiceResponse>>> GetAllService()
@@ -115,6 +118,27 @@ public class ServiceService : IService
         finally 
         {
             _unitOfWork.Dispose();  
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<ServiceResponse>>> GetServicesByVehicleId(Guid vehicleTypeId)
+    {
+        var result = new OperationResult<List<ServiceResponse>>();
+        try
+        {
+            var vehicle = await _unitOfWork.VehicleTypeReposiory.GetByIdAsync(vehicleTypeId);
+            var services = await _unitOfWork.ServiceRepository.GetMulti(s => s.VehicleTypeId.Equals(vehicleTypeId));
+            var list = _mapper.Map<List<ServiceResponse>>(services);
+            result.Payload = list;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
         }
         return result;
     }

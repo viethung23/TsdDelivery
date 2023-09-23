@@ -52,4 +52,12 @@ public class VehicleTypeController : BaseController
         var response = await _vehicleTypeService.DeleteVehicleType(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
+
+    [HttpGet]
+    [ValidateGuid("id")]
+    public async Task<IActionResult> GetVehicleTypeDetail(Guid id)
+    {
+        var response = await _vehicleTypeService.GetVehicleTypeDetail(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

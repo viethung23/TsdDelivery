@@ -120,16 +120,16 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         _dbSet.Remove(entity);
     }
 
-    public Task<TEntity?> GetSingleByCondition(Expression<Func<TEntity, bool>> expression, string[] includes = null)
+    public Task<TEntity> GetSingleByCondition(Expression<Func<TEntity, bool>> expression, string[] includes = null)
     {
         if (includes != null && includes.Count() > 0)
         {
             var query = _dbSet.Include(includes.First());
             foreach (var include in includes.Skip(1))
                 query = query.Include(include);
-            return query.FirstOrDefaultAsync(expression);
+            return query.FirstAsync(expression);
         }
-        return _dbSet.FirstOrDefaultAsync(expression);
+        return _dbSet.FirstAsync(expression);
     }
     
     public Task<List<TEntity>> GetMulti(Expression<Func<TEntity, bool>> predicate, string[] includes = null)

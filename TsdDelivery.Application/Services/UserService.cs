@@ -194,14 +194,9 @@ public class UserService : IUserService
     public async Task<OperationResult<UserResponse>> UploadImage(Guid id, IFormFile blob)
     {
         var result = new OperationResult<UserResponse>();
-
         try
         {
-            var user = await _unitOfWork.UserRepository.GetSingleByCondition(u => u.Id == id, new []{"Role"});
-            if (user is null)
-            {
-                throw new Exception($"Not Found by ID: [{id}]");
-            }
+            var user = await _unitOfWork.UserRepository.GetSingleByCondition(u => u.Id == id, new[] { "Role" });
             var imageUrl = await _blobStorageAzureService.SaveImageAsync(blob);
             user.AvatarUrl = imageUrl;
             await _unitOfWork.UserRepository.Update(user);
@@ -211,6 +206,7 @@ public class UserService : IUserService
             {
                 result.AddError(ErrorCode.ServerError, "Can not save Role to Database");
             }
+
             var userResponse = new UserResponse()
             {
                 Id = user.Id,
@@ -225,6 +221,10 @@ public class UserService : IUserService
             };
 
             result.Payload = userResponse;
+        }
+        catch (InvalidOperationException e)
+        {
+            result.AddUnknownError($"Not Found by ID: [{id}]");
         }
         catch (Exception ex)
         {

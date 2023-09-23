@@ -1,8 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services;
 using TsdDelivery.Application;
 using Microsoft.EntityFrameworkCore;
+using Mapster;
+using MapsterMapper;
+using TsdDelivery.Infrastructures.Mappers;
 
 namespace TsdDelivery.Infrastructures;
 
@@ -25,10 +29,12 @@ public static class DependencyInjection
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(databaseConnection));
-
-        // this configuration just use in-memory for fast develop
-        //services.AddDbContext<AppDbContext>(option => option.UseInMemoryDatabase("test"));
-
+        
+        // register Mapster
+        var config = TypeAdapterConfig.GlobalSettings;
+        config.Scan(Assembly.GetExecutingAssembly());
+        services.AddSingleton(config);
+        services.AddScoped<IMapper, ServiceMapper>();
         
         return services;
     }
