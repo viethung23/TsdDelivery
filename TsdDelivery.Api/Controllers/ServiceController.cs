@@ -49,4 +49,11 @@ public class ServiceController : BaseController
         var response = await _service.DeleteService(serviceId,vehicleTypeId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetServicesByVehicleTypeId(Guid vehicleTypeId)
+    {
+        var response = await _service.GetServicesByVehicleId(vehicleTypeId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

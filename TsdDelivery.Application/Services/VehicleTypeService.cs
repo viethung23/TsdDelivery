@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Mapster;
+using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.VehicleType.Request;
@@ -11,11 +13,12 @@ public class VehicleTypeService : IVehicleTypeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IBlobStorageAzureService _blobStorageAzureService;
-    public VehicleTypeService(IUnitOfWork unitOfWork, IBlobStorageAzureService blobStorageAzureService)
+    private readonly IMapper _mapper;
+    public VehicleTypeService(IUnitOfWork unitOfWork, IBlobStorageAzureService blobStorageAzureService,IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _blobStorageAzureService = blobStorageAzureService;
-
+        _mapper = mapper;
     }
 
     public async Task<OperationResult<VehicleTypeResponse>> CreateVehicleType(CreateVehicleType request, IFormFile? blob = null)
@@ -74,6 +77,28 @@ public class VehicleTypeService : IVehicleTypeService
         catch(Exception ex)
         {
             result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<VehicleTypeDetailResponse>> GetVehicleTypeDetail(Guid id)
+    {
+        var result = new OperationResult<VehicleTypeDetailResponse>();
+        try
+        {
+            string[] include = {"services"};
+            var vehicleType = await _unitOfWork.VehicleTypeReposiory.GetSingleByCondition(x => x.Id == id, include);
+            var data = _mapper.Map<VehicleTypeDetailResponse>(vehicleType);
+            //var data = vehicleType.Adapt<VehicleTypeDetailResponse>();
+            result.Payload = data;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError($"Not Found by ID: [{id}]");
         }
         finally
         {
