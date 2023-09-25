@@ -6,6 +6,7 @@ using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services;
 using Swashbuckle.AspNetCore.Filters;
+using TsdDelivery.Api.Middlewares;
 using TsdDelivery.Application.Commons;
 
 namespace TsdDelivery.Api;
@@ -84,6 +85,7 @@ public static class DependencyInjection
         
         services.AddScoped<IClaimsService, ClaimsService>();
         services.AddHttpContextAccessor();
+        services.AddSingleton<GlobalExceptionMiddleware>();
 
         //services.AddAutoMapper(typeof(UserMapConfig).Assembly);
         return services;
