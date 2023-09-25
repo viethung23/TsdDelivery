@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
@@ -28,6 +29,7 @@ public class ReservationController : BaseController
     /// <returns></returns>
     [HttpPost]
     [ValidateModel]
+    [Authorize]
     public async Task<IActionResult> CreateReservation(CreateReservationRequest request)
     {
         var response = await _reservationService.CreateReservation(request);
@@ -50,9 +52,9 @@ public class ReservationController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    public async Task<IActionResult> GetPendingReservation()
+    public async Task<IActionResult> GetAwaitingDriverReservation()
     {
-        var response = await _reservationService.GetPendingReservation();
+        var response = await _reservationService.GetAwaitingDriverReservation();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     

@@ -9,5 +9,5 @@ public interface IReservationService
     public Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request);
     public Task<OperationResult<CreateReservationResponse>> CreateReservation(CreateReservationRequest request);
     public Task<OperationResult<List<ReservationResponse>>> GetAllReservation();
-    public Task<OperationResult<List<ReservationResponse>>> GetPendingReservation();
+    public Task<OperationResult<List<ReservationResponse>>> GetAwaitingDriverReservation();
 }
