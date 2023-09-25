@@ -17,10 +17,9 @@ public static class GenerateTokenString
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim("UserId", user.Id.ToString()),
             new Claim("PhoneNumber", user.PhoneNumber),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            //new Claim("Roles", roles != null ? JsonSerializer.Serialize(roles) : string.Empty,JsonClaimValueTypes.JsonArray)
             new Claim("Role",user.Role.RoleName),
             new Claim("RoleId",user.Role.Id.ToString()),
         };

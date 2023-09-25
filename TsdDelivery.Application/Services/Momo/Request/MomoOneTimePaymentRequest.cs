@@ -51,7 +51,7 @@ public class MomoOneTimePaymentRequest
         this.signature = HashHelper.HmacSHA256(rawHash, secretKey);
     }
     
-    public (bool, string?) GetLink(string paymentUrl)
+    public (bool, string?, string?) GetLink(string paymentUrl)
     {
         using HttpClient client = new HttpClient();
         var requestData = JsonConvert.SerializeObject(this, new JsonSerializerSettings()
@@ -70,16 +70,16 @@ public class MomoOneTimePaymentRequest
                 .DeserializeObject<MomoOneTimePaymentCreateLinkResponse>(responseContent);
             if(responseData.resultCode == "0")
             {
-                return (true, responseData.payUrl);
+                return (true, responseData.payUrl,responseData.deeplink);
             }
             else
             {
-                return (false, responseData.message);
+                return (false, responseData.message,responseData.deeplink);
             }
         }
         else
         {
-            return (false, createPaymentLinkRes.ReasonPhrase);
+            return (false, createPaymentLinkRes.ReasonPhrase,string.Empty);
         }
     }
 }

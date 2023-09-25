@@ -17,13 +17,15 @@ public class ReservationService : IReservationService
     private readonly IMapper _mapper;
     private readonly AppConfiguration _configuration;
     private readonly ICurrentTime _currentTime;
+    private readonly IClaimsService _claimsService;
 
-    public ReservationService(IUnitOfWork unitOfWork,IMapper mapper,AppConfiguration appConfiguration,ICurrentTime currentTime)
+    public ReservationService(IUnitOfWork unitOfWork,IMapper mapper,AppConfiguration appConfiguration,ICurrentTime currentTime,IClaimsService claimsService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _configuration = appConfiguration;
         _currentTime = currentTime;
+        _claimsService = claimsService;
     }
     
     public async Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request)
@@ -77,6 +79,7 @@ public class ReservationService : IReservationService
                     PickUpDateTime = request.PickUpDateTime ?? _currentTime.GetCurrentTime(),
                     Goods = goods,
                     TotallPrice = request.TotalPrice,
+                    UserId = _claimsService.GetCurrentUserId,
                     ReservationStatus = ReservationStatus.AwaitingPayment
                 };
                 var entity = await _unitOfWork.ReservationRepository.AddAsync(reservation);
@@ -99,13 +102,14 @@ public class ReservationService : IReservationService
                     "Thanh toán đặt xe TSD"?? string.Empty, _configuration.MomoConfig.ReturnUrl,_configuration.MomoConfig.IpnUrl, "captureWallet",
                     string.Empty);
                 momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey, _configuration.MomoConfig.SecretKey);
-                (bool createMomoLinkResult, string? createMessage) = momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
+                (bool createMomoLinkResult, string? createMessage, string? deepLink) = momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
                 if (createMomoLinkResult)
                 {
                     result.Payload = new CreateReservationResponse()
                     {
                         Id = entity.Id,
-                        PaymentUrl = createMessage
+                        PaymentUrl = createMessage,
+                        deeplink = deepLink
                     };
                 }
                 else
@@ -168,12 +172,12 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<List<ReservationResponse>>> GetPendingReservation()
+    public async Task<OperationResult<List<ReservationResponse>>> GetAwaitingDriverReservation()
     {
         var result = new OperationResult<List<ReservationResponse>>();
         try
         {
-            var reservations = await _unitOfWork.ReservationRepository.GetMulti(x =>x.ReservationStatus == ReservationStatus.pending);
+            var reservations = await _unitOfWork.ReservationRepository.GetMulti(x =>x.ReservationStatus == ReservationStatus.AwaitingDriver);
             var list = reservations.Select(x => new ReservationResponse
                 {
                     Id = x.Id,
