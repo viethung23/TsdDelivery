@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Configuration;
 using TsdDelivery.Api;
+using TsdDelivery.Api.Middlewares;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Infrastructures;
 
@@ -14,7 +14,8 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.WithOrigins("http://localhost:3000")
+        builder.WithOrigins("http://localhost:3000",
+                "https://exe202.vercel.app")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -37,6 +38,8 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("v1/swagger.json", "TsdDelivery API V1");
 });
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 

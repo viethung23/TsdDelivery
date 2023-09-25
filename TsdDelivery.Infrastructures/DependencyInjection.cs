@@ -6,6 +6,7 @@ using TsdDelivery.Application;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
 using MapsterMapper;
+using TsdDelivery.Application.Services.Momo;
 using TsdDelivery.Infrastructures.Mappers;
 
 namespace TsdDelivery.Infrastructures;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IService, ServiceService>();
         services.AddScoped<IShippingRateService, ShippingRateService>();
         services.AddScoped<IReservationService, ReservationService>();
+        services.AddScoped<IMomoService, MomoService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(databaseConnection));

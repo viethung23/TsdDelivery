@@ -1,8 +1,11 @@
+using MapsterMapper;
+using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.Reservation.DTO;
 using TsdDelivery.Application.Models.Reservation.Request;
 using TsdDelivery.Application.Models.Reservation.Response;
+using TsdDelivery.Application.Services.Momo.Request;
 using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
@@ -11,10 +14,16 @@ namespace TsdDelivery.Application.Services;
 public class ReservationService : IReservationService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly AppConfiguration _configuration;
+    private readonly ICurrentTime _currentTime;
 
-    public ReservationService(IUnitOfWork unitOfWork)
+    public ReservationService(IUnitOfWork unitOfWork,IMapper mapper,AppConfiguration appConfiguration,ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _configuration = appConfiguration;
+        _currentTime = currentTime;
     }
     
     public async Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request)
@@ -43,9 +52,9 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<ReservationResponse>> CreateReservation(CreateReservationRequest request)
+    public async Task<OperationResult<CreateReservationResponse>> CreateReservation(CreateReservationRequest request)
     {
-        var result = new OperationResult<ReservationResponse>();
+        var result = new OperationResult<CreateReservationResponse>();
         using (var transaction = await _unitOfWork.BeginTransactionAsync())
         {
             try
@@ -65,10 +74,10 @@ public class ReservationService : IReservationService
                     RecipientPhone = request.RecipientPhone,
                     ReciveLocation = request.ReciveLocation,
                     SendLocation = request.SendLocation,
-                    PickUpDateTime = request.PickUpDateTime,
+                    PickUpDateTime = request.PickUpDateTime ?? _currentTime.GetCurrentTime(),
                     Goods = goods,
                     TotallPrice = request.TotalPrice,
-                    ReservationStatus = ReservationStatus.pending
+                    ReservationStatus = ReservationStatus.AwaitingPayment
                 };
                 var entity = await _unitOfWork.ReservationRepository.AddAsync(reservation);
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
@@ -79,6 +88,29 @@ public class ReservationService : IReservationService
                     var service = await _unitOfWork.ServiceRepository.GetByIdAsync(serviceId);
                     await _unitOfWork.ReservationDetailRepository.AddAsync(new ReservationDetail { Reservation = entity, Service = service});
                     await _unitOfWork.SaveChangeAsync();
+                }
+                
+                // thưc hiện chức năng thanh toán ở đây sau khi tạo xong đơn 
+                // đang để defaut phương thức thanh toán là MOMO
+                var paymentMethod = "Momo";
+                var paymentUrl = string.Empty;
+                var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_configuration.MomoConfig.PartnerCode,
+                    DateTime.Now.Ticks.ToString()+entity.Id ?? string.Empty, (long)request.TotalPrice!, entity.Id!.ToString() ?? string.Empty,
+                    "Thanh toán đặt xe TSD"?? string.Empty, _configuration.MomoConfig.ReturnUrl,_configuration.MomoConfig.IpnUrl, "captureWallet",
+                    string.Empty);
+                momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey, _configuration.MomoConfig.SecretKey);
+                (bool createMomoLinkResult, string? createMessage) = momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
+                if (createMomoLinkResult)
+                {
+                    result.Payload = new CreateReservationResponse()
+                    {
+                        Id = entity.Id,
+                        PaymentUrl = createMessage
+                    };
+                }
+                else
+                {
+                    throw new Exception(createMessage);
                 }
                 await transaction.CommitAsync();
             }

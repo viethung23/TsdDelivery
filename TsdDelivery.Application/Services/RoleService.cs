@@ -77,11 +77,6 @@ public class RoleService : IRoleService
         var result = new OperationResult<List<RoleResponse>>();
 
         var roles = await _unitOfWork.RoleRepository.GetAllAsync();
-        if (roles is null)
-        {
-            result.AddError(ErrorCode.NotFound
-                , "Not found any Roles");
-        }
         var list = new List<RoleResponse>();
         foreach(var i in roles)
         {
@@ -97,6 +92,5 @@ public class RoleService : IRoleService
         }
         result.Payload = list;
         return result;
-
     }
 }

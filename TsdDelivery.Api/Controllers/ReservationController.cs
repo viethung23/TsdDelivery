@@ -31,7 +31,7 @@ public class ReservationController : BaseController
     public async Task<IActionResult> CreateReservation(CreateReservationRequest request)
     {
         var response = await _reservationService.CreateReservation(request);
-        return (response.IsError) ? HandleErrorResponse(response.Errors) : Ok("Create Success");
+        return (response.IsError) ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     /// <summary>

@@ -21,8 +21,7 @@ public class CreateReservationRequest
     [Range(0.1f,9999)]
     public decimal Distance { get; set; }
     
-    [Required]
-    public DateTime PickUpDateTime { get; set; }
+    public DateTime? PickUpDateTime { get; set; }
     
     [Required]
     public GoodsDto GoodsDto { get; set; } = new GoodsDto();
@@ -33,4 +32,7 @@ public class CreateReservationRequest
     
     [Required]
     public List<Guid> ServiceIds { get; set; }
+    
+    [Required]
+    public string PaymentMethod { get; set; } 
 }
