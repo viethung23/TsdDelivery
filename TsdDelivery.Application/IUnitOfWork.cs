@@ -13,6 +13,7 @@ public interface IUnitOfWork : IDisposable
     public IShippingRateRepository ShippingRateRepository { get; }
     public IReservationRepository ReservationRepository { get; }
     public IReservationDetailRepository ReservationDetailRepository { get; }
+    public IWalletRepository WalletRepository { get; }
 
     public Task<int> SaveChangeAsync();
     IDbContextTransaction BeginTransaction();
