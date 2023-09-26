@@ -62,8 +62,8 @@ public class ReservationController : BaseController
     /// Api for driver
     /// </summary>
     /// <returns></returns>
-    [HttpPatch]
-    public async Task<IActionResult> AcceptReservation()
+    [HttpPost]
+    public async Task<IActionResult> AcceptReservation(Guid driverId,Guid reservationId)
     {
         return Ok();
     }

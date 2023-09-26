@@ -3,6 +3,7 @@ using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Services.Momo.Request;
+using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
 namespace TsdDelivery.Application.Services.Momo;
@@ -26,7 +27,6 @@ public class MomoService : IMomoService
             if (isValidSignature)
             {
                 var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(Guid.Parse(request.orderId));
-                // to do
                 if (request.resultCode == 0)
                 {
                     reservation.ReservationStatus = ReservationStatus.AwaitingDriver;
@@ -36,6 +36,26 @@ public class MomoService : IMomoService
                     {
                         result.AddError(ErrorCode.ServerError,"Fail to update reservation status");
                     }
+                    //todo
+                    var include = new [] {"Wallet"};
+                    // fix cứng Admin 
+                    var admin = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Role.RoleName == "ADMIN", include);
+                    admin.Wallet!.Balance += request.amount;
+                    await _unitOfWork.SaveChangeAsync();
+
+                    var transactionForAdmin = new Transaction()
+                    {
+                        Price = request.amount,
+                        Status = TransactionStatus.success.ToString(),
+                        PaymentMethod = "Thanh-toan-online",
+                        Description = "Nhận tiền thanh toán từ đơn đặt có Mã: " + reservation.Id,
+                        WalletId = admin.Wallet!.Id,
+                        ReservationId = reservation.Id
+                    };
+                    // TO DO HERE
+                    await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
+                    await _unitOfWork.SaveChangeAsync();
+                    
                     result.Payload = "Thanh toan thanh cong";
                 }
                 else

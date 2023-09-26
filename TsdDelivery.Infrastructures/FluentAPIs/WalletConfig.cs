@@ -11,11 +11,6 @@ public class WalletConfig : IEntityTypeConfiguration<Wallet>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         
-        builder.HasOne(rd => rd.User)
-            .WithMany(rd => rd.Wallets)
-            .OnDelete(DeleteBehavior.Cascade)
-            .HasForeignKey(pk => pk.UserId);
-        
         builder.Property(x => x.Balance).HasColumnType("decimal(18,2)");
         builder.Property(x => x.Debt).HasColumnType("decimal(18,2)");
     }
