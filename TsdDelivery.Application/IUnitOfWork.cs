@@ -14,6 +14,7 @@ public interface IUnitOfWork : IDisposable
     public IReservationRepository ReservationRepository { get; }
     public IReservationDetailRepository ReservationDetailRepository { get; }
     public IWalletRepository WalletRepository { get; }
+    public ITransactionRepository TransactionRepository { get; }
 
     public Task<int> SaveChangeAsync();
     IDbContextTransaction BeginTransaction();
