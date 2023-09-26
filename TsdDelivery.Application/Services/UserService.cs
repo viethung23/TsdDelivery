@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
@@ -66,21 +67,32 @@ public class UserService : IUserService
         }
         return result;
     }
-
+    
     public async Task<OperationResult<User>> Register(UserCreateUpdate command)
     {
         var result = new OperationResult<User>();
-        try
+        using (var transaction = await _unitOfWork.BeginTransactionAsync())
         {
-            var users = await _unitOfWork.UserRepository.GetUserByPhoneNumber(command.PhoneNumber);
-            var role = await _unitOfWork.RoleRepository.GetByIdAsync(Guid.Parse(command.RoleId));
-            var entity = new User();
-            if (users.Count() > 0)
+            try
             {
-                if(users.Any(x =>x.RoleId.ToString() == command.RoleId))
+                var users = await _unitOfWork.UserRepository.GetUserByPhoneNumber(command.PhoneNumber);
+                var role = await _unitOfWork.RoleRepository.GetByIdAsync(Guid.Parse(command.RoleId));
+                var entity = new User();
+                if (users.Count() > 0)
                 {
-                    result.AddError(ErrorCode.ValidationError, string.Format("Account already exists with phone : [{0}] and role : [{1}]", command.PhoneNumber,role.RoleName));
-                    return result;
+                    if(users.Any(x =>x.RoleId.ToString() == command.RoleId))
+                    {
+                        result.AddError(ErrorCode.ValidationError, string.Format("Account already exists with phone : [{0}] and role : [{1}]", command.PhoneNumber,role.RoleName));
+                        return result;
+                    }
+                    else
+                    {
+                        entity.Email = command.Email;
+                        entity.FullName = command.FullName;
+                        entity.PhoneNumber = command.PhoneNumber;
+                        entity.PasswordHash = command.Password;
+                        entity.Role = role;
+                    }
                 }
                 else
                 {
@@ -90,32 +102,38 @@ public class UserService : IUserService
                     entity.PasswordHash = command.Password;
                     entity.Role = role;
                 }
-            }
-            else
-            {
-                entity.Email = command.Email;
-                entity.FullName = command.FullName;
-                entity.PhoneNumber = command.PhoneNumber;
-                entity.PasswordHash = command.Password;
-                entity.Role = role;
-            }
-            var u = await _unitOfWork.UserRepository.AddAsync(entity);
-            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            if (!isSuccess)
-            {
-                result.AddUnknownError("Can not save to database");
-            }
-        }
-        catch (Exception ex)
-        {
-            result.AddUnknownError(ex.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
-        return result;
+            
+                var u = await _unitOfWork.UserRepository.AddAsync(entity);
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddUnknownError("Can not save to database");
+                }
+                if (u.Role.RoleName == "DRIVER")
+                {
+                    var wallet = new Wallet()
+                    {
+                        Balance = 0M,
+                        Debt = 0M,
+                        User = u
+                    };
+                    var w = await _unitOfWork.WalletRepository.AddAsync(wallet);
+                    await _unitOfWork.SaveChangeAsync();
+                }
 
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                result.AddUnknownError(ex.Message);
+                await transaction.RollbackAsync();
+            }
+            finally
+            {
+                _unitOfWork.Dispose();
+            }
+            return result;
+        }
     }
     
 

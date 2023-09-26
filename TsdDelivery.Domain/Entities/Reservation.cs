@@ -21,4 +21,5 @@ public class Reservation : BaseEntity
     public User? Driver { get; set; }
 
     public ICollection<ReservationDetail?> reservationDetails { get; set; }
+    public ICollection<Transaction?> Transactions { get; set; }
 }

@@ -12,8 +12,8 @@ using TsdDelivery.Infrastructures;
 namespace TsdDelivery.Infrastructures.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230823170217_add-property-distance")]
-    partial class addpropertydistance
+    [Migration("20230926060458_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,6 +101,27 @@ namespace TsdDelivery.Infrastructures.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeleteBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ModificationBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("ReservationId")
                         .HasColumnType("uniqueidentifier");
 
@@ -183,7 +204,7 @@ namespace TsdDelivery.Infrastructures.Migrations
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ServiceName")
@@ -244,6 +265,43 @@ namespace TsdDelivery.Infrastructures.Migrations
                     b.HasIndex("ServiceId");
 
                     b.ToTable("ShippingRate");
+                });
+
+            modelBuilder.Entity("TsdDelivery.Domain.Entities.Transaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ReservationId")
+                        .IsRequired()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("WalletId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReservationId");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("Transaction");
                 });
 
             modelBuilder.Entity("TsdDelivery.Domain.Entities.User", b =>
@@ -408,6 +466,49 @@ namespace TsdDelivery.Infrastructures.Migrations
                     b.ToTable("VehicleType");
                 });
 
+            modelBuilder.Entity("TsdDelivery.Domain.Entities.Wallet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Debt")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("DeleteBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ModificationBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Wallet");
+                });
+
             modelBuilder.Entity("TsdDelivery.Domain.Entities.Reservation", b =>
                 {
                     b.HasOne("TsdDelivery.Domain.Entities.User", "Driver")
@@ -433,9 +534,8 @@ namespace TsdDelivery.Infrastructures.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<string>("Weight")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                            b1.Property<decimal?>("Weight")
+                                .HasColumnType("decimal(18,2)");
 
                             b1.Property<decimal?>("Width")
                                 .HasColumnType("decimal(18,2)");
@@ -494,6 +594,23 @@ namespace TsdDelivery.Infrastructures.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("TsdDelivery.Domain.Entities.Transaction", b =>
+                {
+                    b.HasOne("TsdDelivery.Domain.Entities.Reservation", "Reservation")
+                        .WithMany("Transactions")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TsdDelivery.Domain.Entities.Wallet", "Wallet")
+                        .WithMany("Transactions")
+                        .HasForeignKey("WalletId");
+
+                    b.Navigation("Reservation");
+
+                    b.Navigation("Wallet");
+                });
+
             modelBuilder.Entity("TsdDelivery.Domain.Entities.User", b =>
                 {
                     b.HasOne("TsdDelivery.Domain.Entities.Role", "Role")
@@ -518,8 +635,20 @@ namespace TsdDelivery.Infrastructures.Migrations
                     b.Navigation("VehicleType");
                 });
 
+            modelBuilder.Entity("TsdDelivery.Domain.Entities.Wallet", b =>
+                {
+                    b.HasOne("TsdDelivery.Domain.Entities.User", "User")
+                        .WithMany("Wallets")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TsdDelivery.Domain.Entities.Reservation", b =>
                 {
+                    b.Navigation("Transactions");
+
                     b.Navigation("reservationDetails");
                 });
 
@@ -542,6 +671,8 @@ namespace TsdDelivery.Infrastructures.Migrations
                     b.Navigation("ReservationUsers");
 
                     b.Navigation("Vehicles");
+
+                    b.Navigation("Wallets");
                 });
 
             modelBuilder.Entity("TsdDelivery.Domain.Entities.VehicleType", b =>
@@ -549,6 +680,11 @@ namespace TsdDelivery.Infrastructures.Migrations
                     b.Navigation("Vehicles");
 
                     b.Navigation("services");
+                });
+
+            modelBuilder.Entity("TsdDelivery.Domain.Entities.Wallet", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }
