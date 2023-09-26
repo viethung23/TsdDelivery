@@ -15,6 +15,11 @@ public class PaymentsController : BaseController
         _momoService = momoService;
     }
     
+    /// <summary>
+    /// Api for System
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpGet]
     [Route("momo-return")]
     public async Task<IActionResult> MomoReturn([FromQuery]MomoOneTimePaymentResultRequest request)

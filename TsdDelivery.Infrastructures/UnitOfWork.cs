@@ -33,6 +33,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IReservationDetailRepository ReservationDetailRepository => new ReservationDetailRepository(_appDbContext, _claimsService, _currentTime);
     public IWalletRepository WalletRepository => new WalletRepository(_appDbContext,_claimsService,_currentTime);
+    public ITransactionRepository TransactionRepository => new TransactionRepository(_appDbContext, _currentTime, _claimsService);
 
     public async Task<int> SaveChangeAsync()
     {

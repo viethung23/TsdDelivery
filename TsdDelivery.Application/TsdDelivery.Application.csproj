@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TsdDelivery.Domain\TsdDelivery.Domain.csproj" />
+    <Folder Include="Models\Transaction\Request\" />
+    <Folder Include="Models\Wallet\Request\" />
   </ItemGroup>
 
 

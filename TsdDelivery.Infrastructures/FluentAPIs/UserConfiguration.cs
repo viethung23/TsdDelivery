@@ -22,5 +22,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithMany(ur => ur.Users)
             .HasForeignKey(pk => pk.RoleId);
 
+        builder.HasOne(x => x.Wallet)
+            .WithOne(x => x.User)
+            .HasForeignKey<Wallet>(pk => pk.UserId);
     }
 }
