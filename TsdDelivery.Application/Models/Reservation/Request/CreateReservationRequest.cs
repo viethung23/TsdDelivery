@@ -9,6 +9,12 @@ public class CreateReservationRequest
     public string SendLocation { get; set; }
     
     [Required]
+    public double latitudeSendLocation { get; set; }
+    
+    [Required]
+    public double longitudeSendLocation { get; set; }
+    
+    [Required]
     public string ReciveLocation { get; set; }
     
     [Required]
@@ -32,6 +38,7 @@ public class CreateReservationRequest
     
     [Required]
     public List<Guid> ServiceIds { get; set; }
+    
     
     [Required]
     public string PaymentMethod { get; set; } 

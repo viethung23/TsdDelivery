@@ -1,4 +1,5 @@
 using MapsterMapper;
+using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
@@ -80,7 +81,9 @@ public class ReservationService : IReservationService
                     Goods = goods,
                     TotallPrice = request.TotalPrice,
                     UserId = _claimsService.GetCurrentUserId,
-                    ReservationStatus = ReservationStatus.AwaitingPayment
+                    ReservationStatus = ReservationStatus.AwaitingPayment,
+                    latitudeSendLocation = request.latitudeSendLocation,
+                    longitudeSendLocation = request.longitudeSendLocation
                 };
                 var entity = await _unitOfWork.ReservationRepository.AddAsync(reservation);
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
@@ -137,6 +140,26 @@ public class ReservationService : IReservationService
         try
         {
             var reservations = await _unitOfWork.ReservationRepository.GetAllAsync();
+            var list = _mapper.Map<List<ReservationResponse>>(reservations);
+            result.Payload = list;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<ReservationResponse>>> GetAwaitingDriverReservation(Coordinates coordinates)
+    {
+        var result = new OperationResult<List<ReservationResponse>>();
+        try
+        {
+            var reservations = await _unitOfWork.ReservationRepository.GetMulti(x =>x.ReservationStatus == ReservationStatus.AwaitingDriver);
             var list = reservations.Select(x => new ReservationResponse
                 {
                     Id = x.Id,
@@ -145,7 +168,7 @@ public class ReservationService : IReservationService
                     ReciveLocation = x.ReciveLocation,
                     SendLocation = x.SendLocation,
                     PickUpDateTime = x.PickUpDateTime,
-                    ReservationStatus = x.ReservationStatus,
+                    ReservationStatus = x.ReservationStatus.ToString(),
                     TotallPrice = x.TotallPrice,
                     Distance = x.Distance,
                     GoodsDto = new GoodsDto
@@ -158,6 +181,7 @@ public class ReservationService : IReservationService
                     }
                 })
                 .ToList();
+            //var list = _mapper.Map<List<ReservationResponse>>(reservations);
 
             result.Payload = list;
         }
@@ -172,35 +196,13 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<List<ReservationResponse>>> GetAwaitingDriverReservation()
+    public async Task<OperationResult<ReservationResponse>> GetAwaitingDriverReservationDetail(Guid id, Coordinates coordinates)
     {
-        var result = new OperationResult<List<ReservationResponse>>();
+        var result = new OperationResult<ReservationResponse>();
         try
         {
-            var reservations = await _unitOfWork.ReservationRepository.GetMulti(x =>x.ReservationStatus == ReservationStatus.AwaitingDriver);
-            var list = reservations.Select(x => new ReservationResponse
-                {
-                    Id = x.Id,
-                    RecipientName = x.RecipientName,
-                    RecipientPhone = x.RecipientPhone,
-                    ReciveLocation = x.ReciveLocation,
-                    SendLocation = x.SendLocation,
-                    PickUpDateTime = x.PickUpDateTime,
-                    ReservationStatus = x.ReservationStatus,
-                    TotallPrice = x.TotallPrice,
-                    Distance = x.Distance,
-                    GoodsDto = new GoodsDto
-                    {
-                        Width = x.Goods.Width,
-                        Length = x.Goods.Length,
-                        Name = x.Goods.Name,
-                        Weight = x.Goods.Weight,
-                        Height = x.Goods.Height
-                    }
-                })
-                .ToList();
-
-            result.Payload = list;
+            var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(id);
+            result.Payload = _mapper.Map<ReservationResponse>(reservation);
         }
         catch (Exception e)
         {

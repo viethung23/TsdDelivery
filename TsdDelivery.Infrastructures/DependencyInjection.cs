@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IMomoService, MomoService>();
         services.AddScoped<IWalletService, WalletService>();
         services.AddScoped<ITransactionService, TransactionService>();
+        services.AddScoped<IMapService, MapService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(databaseConnection));
