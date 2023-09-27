@@ -18,17 +18,20 @@ public class ReservationService : IReservationService
     private readonly IMapper _mapper;
     private readonly AppConfiguration _configuration;
     private readonly ICurrentTime _currentTime;
+    private readonly IMapService _mapService;
     private readonly IClaimsService _claimsService;
 
-    public ReservationService(IUnitOfWork unitOfWork,IMapper mapper,AppConfiguration appConfiguration,ICurrentTime currentTime,IClaimsService claimsService)
+    public ReservationService(IUnitOfWork unitOfWork, IMapper mapper, AppConfiguration appConfiguration,
+        ICurrentTime currentTime, IClaimsService claimsService, IMapService mapService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _configuration = appConfiguration;
         _currentTime = currentTime;
         _claimsService = claimsService;
+        _mapService = mapService;
     }
-    
+
     public async Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request)
     {
         // here implement logic 
@@ -40,11 +43,12 @@ public class ReservationService : IReservationService
             {
                 var service = await _unitOfWork.ServiceRepository.GetByIdAsync(id);
                 var shippingRates = await _unitOfWork.ShippingRateRepository.GetMulti(s => s.ServiceId == id);
-                totalAmount += service.Price + CalculateShippingRateByKm(request.Distance,shippingRates) ;
+                totalAmount += service.Price + CalculateShippingRateByKm(request.Distance, shippingRates);
             }
+
             result.Payload = new CalculatePriceResponse() { Distance = request.Distance, TotalAmount = totalAmount };
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
@@ -52,6 +56,7 @@ public class ReservationService : IReservationService
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
@@ -88,24 +93,29 @@ public class ReservationService : IReservationService
                 var entity = await _unitOfWork.ReservationRepository.AddAsync(reservation);
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
                 if (!isSuccess) throw new NotImplementedException();
-                
+
                 foreach (var serviceId in request.ServiceIds)
                 {
                     var service = await _unitOfWork.ServiceRepository.GetByIdAsync(serviceId);
-                    await _unitOfWork.ReservationDetailRepository.AddAsync(new ReservationDetail { Reservation = entity, Service = service});
+                    await _unitOfWork.ReservationDetailRepository.AddAsync(new ReservationDetail
+                        { Reservation = entity, Service = service });
                     await _unitOfWork.SaveChangeAsync();
                 }
-                
+
                 // thưc hiện chức năng thanh toán ở đây sau khi tạo xong đơn 
                 // đang để defaut phương thức thanh toán là MOMO
                 var paymentMethod = "Momo";
                 var paymentUrl = string.Empty;
                 var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_configuration.MomoConfig.PartnerCode,
-                    DateTime.Now.Ticks.ToString()+entity.Id ?? string.Empty, (long)request.TotalPrice!, entity.Id!.ToString() ?? string.Empty,
-                    "Thanh toán đặt xe TSD"?? string.Empty, _configuration.MomoConfig.ReturnUrl,_configuration.MomoConfig.IpnUrl, "captureWallet",
+                    DateTime.Now.Ticks.ToString() + entity.Id ?? string.Empty, (long)request.TotalPrice!,
+                    entity.Id!.ToString() ?? string.Empty,
+                    "Thanh toán đặt xe TSD" ?? string.Empty, _configuration.MomoConfig.ReturnUrl,
+                    _configuration.MomoConfig.IpnUrl, "captureWallet",
                     string.Empty);
-                momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey, _configuration.MomoConfig.SecretKey);
-                (bool createMomoLinkResult, string? createMessage, string? deepLink) = momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
+                momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey,
+                    _configuration.MomoConfig.SecretKey);
+                (bool createMomoLinkResult, string? createMessage, string? deepLink) =
+                    momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
                 if (createMomoLinkResult)
                 {
                     result.Payload = new CreateReservationResponse()
@@ -119,6 +129,7 @@ public class ReservationService : IReservationService
                 {
                     throw new Exception(createMessage);
                 }
+
                 await transaction.CommitAsync();
             }
             catch (Exception e)
@@ -130,6 +141,7 @@ public class ReservationService : IReservationService
             {
                 _unitOfWork.Dispose();
             }
+
             return result;
         }
     }
@@ -151,6 +163,7 @@ public class ReservationService : IReservationService
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
@@ -159,8 +172,15 @@ public class ReservationService : IReservationService
         var result = new OperationResult<List<ReservationResponse>>();
         try
         {
-            var reservations = await _unitOfWork.ReservationRepository.GetMulti(x =>x.ReservationStatus == ReservationStatus.AwaitingDriver);
-            var list = reservations.Select(x => new ReservationResponse
+            var reservations =
+                await _unitOfWork.ReservationRepository.GetMulti(x =>
+                    x.ReservationStatus == ReservationStatus.AwaitingDriver);
+            var list = new List<ReservationResponse>();
+            foreach (var x in reservations)
+            {
+                var distance = await GetDistanseKm(coordinates.Latitude, coordinates.Longitude, x.latitudeSendLocation,
+                    x.longitudeSendLocation);
+                var response = new ReservationResponse()
                 {
                     Id = x.Id,
                     RecipientName = x.RecipientName,
@@ -171,6 +191,7 @@ public class ReservationService : IReservationService
                     ReservationStatus = x.ReservationStatus.ToString(),
                     TotallPrice = x.TotallPrice,
                     Distance = x.Distance,
+                    distanceFromCurrentReservationToYou = distance ?? null,
                     GoodsDto = new GoodsDto
                     {
                         Width = x.Goods.Width,
@@ -179,9 +200,9 @@ public class ReservationService : IReservationService
                         Weight = x.Goods.Weight,
                         Height = x.Goods.Height
                     }
-                })
-                .ToList();
-            //var list = _mapper.Map<List<ReservationResponse>>(reservations);
+                };
+                list.Add(response);
+            }
 
             result.Payload = list;
         }
@@ -193,10 +214,12 @@ public class ReservationService : IReservationService
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
-    public async Task<OperationResult<ReservationResponse>> GetAwaitingDriverReservationDetail(Guid id, Coordinates coordinates)
+    public async Task<OperationResult<ReservationResponse>> GetAwaitingDriverReservationDetail(Guid id,
+        Coordinates coordinates)
     {
         var result = new OperationResult<ReservationResponse>();
         try
@@ -212,6 +235,7 @@ public class ReservationService : IReservationService
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
@@ -234,8 +258,25 @@ public class ReservationService : IReservationService
             {
                 multiplier = 0;
             }
+
             total += sr.Price * multiplier;
         }
+
         return total;
+    }
+
+    private async Task<double?> GetDistanseKm(double originLat, double originLon, double destLat, double destLon)
+    {
+        try
+        {
+            var distance =
+                await _mapService.CaculateDistanceBetweenTwoCoordinates(originLat, originLon, destLat, destLon);
+            var km = distance / 1000;
+            return km;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 }

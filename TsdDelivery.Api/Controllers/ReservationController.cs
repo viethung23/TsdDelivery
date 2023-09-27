@@ -55,6 +55,7 @@ public class ReservationController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [ValidateModel]
     public async Task<IActionResult> GetAwaitingDriverReservation([FromQuery] Coordinates? coordinates)
     {
         var response = await _reservationService.GetAwaitingDriverReservation(coordinates);
@@ -68,6 +69,7 @@ public class ReservationController : BaseController
     /// <param name="coordinates"></param>
     /// <returns></returns>
     [HttpGet]
+    [ValidateModel]
     public async Task<IActionResult> GetAwaitingDriverReservationDetail(Guid id,[FromQuery]Coordinates? coordinates)
     {
         var response = await _reservationService.GetAwaitingDriverReservationDetail(id,coordinates);
