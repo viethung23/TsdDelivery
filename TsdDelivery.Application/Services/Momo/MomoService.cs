@@ -1,4 +1,4 @@
-using Microsoft.VisualBasic.CompilerServices;
+using Microsoft.Extensions.Caching.Memory;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
@@ -12,6 +12,7 @@ public class MomoService : IMomoService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly AppConfiguration _configuration;
+    private static MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
     public MomoService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration)
     {
         _unitOfWork = unitOfWork;
@@ -21,6 +22,13 @@ public class MomoService : IMomoService
     public async Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest request)
     {
         var result = new OperationResult<string>();
+        var cacheKey = $"MomoPayment_{request.signature}";
+        if(_cache.Get(cacheKey) != null) 
+        {
+            // Trả về kết quả từ cache
+            result.Payload = "ban da thanh toan thanh cong";
+            return result;
+        }
         try
         {
             var isValidSignature = request.IsValidSignature(_configuration.MomoConfig.AccessKey, _configuration.MomoConfig.SecretKey);
@@ -55,6 +63,8 @@ public class MomoService : IMomoService
                     // TO DO HERE
                     await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
                     await _unitOfWork.SaveChangeAsync();
+                    
+                    _cache.Set(cacheKey, result, TimeSpan.FromMinutes(7));
                     
                     result.Payload = "Thanh toan thanh cong";
                 }
