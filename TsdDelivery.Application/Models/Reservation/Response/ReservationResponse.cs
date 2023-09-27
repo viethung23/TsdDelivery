@@ -14,5 +14,6 @@ public class ReservationResponse
     public decimal Distance { get; set; }
     public DateTime PickUpDateTime { get; set; }
     public decimal TotallPrice { get; set; }
-    public ReservationStatus ReservationStatus { get; set; }
+    public string ReservationStatus { get; set; }
+    public double? distanceFromCurrentReservationToYou { get; set; }
 }

@@ -1,4 +1,5 @@
 using Mapster;
+using TsdDelivery.Application.Models.Reservation.Response;
 using TsdDelivery.Application.Models.Service.Response;
 using TsdDelivery.Application.Models.VehicleType.Response;
 using TsdDelivery.Domain.Entities;
@@ -11,7 +12,9 @@ public class MapsterConfig : IRegister
     {
         config.NewConfig<VehicleType, VehicleTypeDetailResponse>()
             .Map(dest => dest.Services, src => src.services);
-        
+
+        config.NewConfig<Reservation, ReservationResponse>()
+            .Map(dest => dest.GoodsDto, src => src.Goods);
         //config.NewConfig<Service, ServiceResponse>();
     }
 }

@@ -5,6 +5,8 @@ namespace TsdDelivery.Domain.Entities;
 public class Reservation : BaseEntity
 {
     public string SendLocation { get; set; }
+    public double latitudeSendLocation { get; set; }
+    public double longitudeSendLocation { get; set; }
     public string ReciveLocation { get; set; }
     public string RecipientName { get; set; }
     public string RecipientPhone { get; set;}
