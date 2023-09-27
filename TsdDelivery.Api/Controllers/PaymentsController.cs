@@ -24,23 +24,7 @@ public class PaymentsController : BaseController
     [Route("momo-return")]
     public async Task<IActionResult> MomoReturn([FromQuery]MomoOneTimePaymentResultRequest request)
     {
-        /*string returnUrl = string.Empty;
-        var returnModel = new PaymentReturnDtos();
-        var processResult = await mediator.Send(response.Adapt<ProcessMomoPaymentReturn>());
-
-        if (processResult.Success)
-        {
-            returnModel = processResult.Data.Item1 as PaymentReturnDtos;
-            returnUrl = processResult.Data.Item2 as string;
-        }
-
-        if (returnUrl.EndsWith("/"))
-            returnUrl = returnUrl.Remove(returnUrl.Length - 1, 1);
-        return Redirect($"{returnUrl}?{returnModel.ToQueryString()}");*/
-
         var response = await _momoService.ProcessMomoPaymentReturn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        
-        //return Ok("HAHAHAHAHA");
     }
 }
