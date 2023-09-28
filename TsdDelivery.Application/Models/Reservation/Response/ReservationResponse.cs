@@ -12,6 +12,7 @@ public class ReservationResponse
     public string RecipientPhone { get; set;}
     public GoodsDto GoodsDto { get; set; }
     public decimal Distance { get; set; }
+    public bool IsNow { get; set; }
     public DateTime PickUpDateTime { get; set; }
     public decimal TotallPrice { get; set; }
     public string ReservationStatus { get; set; }
