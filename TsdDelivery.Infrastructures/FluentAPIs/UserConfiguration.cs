@@ -24,6 +24,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasOne(x => x.Wallet)
             .WithOne(x => x.User)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey<Wallet>(pk => pk.UserId);
     }
 }

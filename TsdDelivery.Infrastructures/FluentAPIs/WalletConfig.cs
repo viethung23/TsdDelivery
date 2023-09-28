@@ -11,6 +11,7 @@ public class WalletConfig : IEntityTypeConfiguration<Wallet>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         
+        
         builder.Property(x => x.Balance).HasColumnType("decimal(18,2)");
         builder.Property(x => x.Debt).HasColumnType("decimal(18,2)");
     }
