@@ -188,8 +188,12 @@ public class ReservationService : IReservationService
             var list = new List<ReservationResponse>();
             foreach (var x in reservations)
             {
-                var distance = await GetDistanseKm(coordinates.Latitude, coordinates.Longitude, x.latitudeSendLocation,
-                    x.longitudeSendLocation);
+                double? dis = null;
+                if (CheckHasValue(coordinates))
+                {
+                    dis = await GetDistanseKm(coordinates!.Latitude.Value, coordinates!.Longitude.Value, x.latitudeSendLocation,
+                        x.longitudeSendLocation);
+                }
                 var response = new ReservationResponse()
                 {
                     Id = x.Id,
@@ -202,7 +206,7 @@ public class ReservationService : IReservationService
                     ReservationStatus = x.ReservationStatus.ToString(),
                     TotallPrice = x.TotallPrice,
                     Distance = x.Distance,
-                    distanceFromCurrentReservationToYou = distance ?? null,
+                    distanceFromCurrentReservationToYou = dis ?? null,
                     GoodsDto = new GoodsDto
                     {
                         Width = x.Goods.Width,
@@ -288,6 +292,18 @@ public class ReservationService : IReservationService
         catch (Exception e)
         {
             return null;
+        }
+    }
+
+    private bool CheckHasValue(Coordinates coordinates)
+    {
+        if (coordinates!.Longitude.HasValue && coordinates!.Latitude.HasValue)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 }
