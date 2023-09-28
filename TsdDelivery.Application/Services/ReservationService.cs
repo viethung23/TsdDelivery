@@ -197,6 +197,7 @@ public class ReservationService : IReservationService
                     RecipientPhone = x.RecipientPhone,
                     ReciveLocation = x.ReciveLocation,
                     SendLocation = x.SendLocation,
+                    IsNow = x.IsNow,
                     PickUpDateTime = x.PickUpDateTime,
                     ReservationStatus = x.ReservationStatus.ToString(),
                     TotallPrice = x.TotallPrice,
