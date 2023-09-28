@@ -11,6 +11,7 @@ public class Reservation : BaseEntity
     public string RecipientName { get; set; }
     public string RecipientPhone { get; set;}
     public decimal Distance { get; set; }
+    public bool IsNow { get; set; }
     public DateTime PickUpDateTime { get; set; }
     public Goods Goods { get; set; }
     public decimal TotallPrice { get; set; }

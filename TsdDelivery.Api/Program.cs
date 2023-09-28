@@ -1,3 +1,5 @@
+using Hangfire;
+using HangfireBasicAuthenticationFilter;
 using TsdDelivery.Api;
 using TsdDelivery.Api.Middlewares;
 using TsdDelivery.Application.Commons;
@@ -50,6 +52,18 @@ app.UseAuthorization();
 app.UseStaticFiles();
 
 app.MapControllers();
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    DashboardTitle = "My Website",
+    Authorization = new[]
+    {
+        new HangfireCustomBasicAuthenticationFilter{
+            User = "admin",
+            Pass = "123456"
+        }
+    }
+});
 
 app.Run();
 

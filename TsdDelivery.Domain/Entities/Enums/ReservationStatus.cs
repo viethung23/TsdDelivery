@@ -2,10 +2,10 @@
 
 public enum ReservationStatus
 {
-    pending,
     AwaitingPayment,
     AwaitingDriver,
     Cancelled,
-    Completed 
+    Completed,
+    
     
 }

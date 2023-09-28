@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services;
@@ -7,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Mapster;
 using MapsterMapper;
 using TsdDelivery.Application.Services.Momo;
-using TsdDelivery.Infrastructures.Mappers;
 
 namespace TsdDelivery.Infrastructures;
 
@@ -41,6 +42,17 @@ public static class DependencyInjection
         services.AddSingleton(config);
         services.AddScoped<IMapper, ServiceMapper>();
         
+        // register hangfire
+        services.AddHangfire(hangfire =>
+        {
+            hangfire.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
+            hangfire.UseSimpleAssemblyNameTypeSerializer();
+            hangfire.UseRecommendedSerializerSettings();
+            hangfire.UseColouredConsoleLogProvider();
+            hangfire.UseSqlServerStorage(databaseConnection);
+        });
+        services.AddHangfireServer();
+        services.AddTransient<IBackgroundService, BackgroundService>();
         return services;
     }
 }
