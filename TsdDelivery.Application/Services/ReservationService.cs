@@ -1,3 +1,4 @@
+using Hangfire;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Application.Commons;
@@ -67,6 +68,10 @@ public class ReservationService : IReservationService
         {
             try
             {
+                if (request.IsNow == false && request.PickUpDateTime < DateTime.UtcNow.AddHours(7))
+                {
+                    throw new Exception($"pickUpDateTime can not be less than now");
+                }
                 var goods = new Goods()
                 {
                     Height = request.GoodsDto.Height,
@@ -82,7 +87,8 @@ public class ReservationService : IReservationService
                     RecipientPhone = request.RecipientPhone,
                     ReciveLocation = request.ReciveLocation,
                     SendLocation = request.SendLocation,
-                    PickUpDateTime = request.PickUpDateTime ?? _currentTime.GetCurrentTime(),
+                    IsNow = request.IsNow,
+                    PickUpDateTime = request.IsNow == true ? DateTime.UtcNow.AddHours(7) : request.PickUpDateTime!.Value,
                     Goods = goods,
                     TotallPrice = request.TotalPrice,
                     UserId = _claimsService.GetCurrentUserId,
@@ -131,6 +137,10 @@ public class ReservationService : IReservationService
                 }
 
                 await transaction.CommitAsync();
+                
+                // goi Background Service Check status sau 10p
+                BackgroundJob.Schedule<IBackgroundService>(
+                    x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), TimeSpan.FromMinutes(5));
             }
             catch (Exception e)
             {
