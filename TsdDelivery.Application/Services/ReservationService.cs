@@ -138,9 +138,10 @@ public class ReservationService : IReservationService
 
                 await transaction.CommitAsync();
                 
-                // goi Background Service Check status sau 10p
-                BackgroundJob.Schedule<IBackgroundService>(
-                    x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), TimeSpan.FromMinutes(5));
+                // goi Background Service Check status sau 2p
+                var timeToCancel = DateTime.UtcNow.AddMinutes(2);
+                string id = BackgroundJob.Schedule<IBackgroundService>(
+                    x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel);
             }
             catch (Exception e)
             {
