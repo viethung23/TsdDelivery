@@ -1,7 +1,9 @@
+using Hangfire;
 using Microsoft.Extensions.Caching.Memory;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Services.Momo.Request;
 using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
@@ -12,16 +14,19 @@ public class MomoService : IMomoService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly AppConfiguration _configuration;
+    private readonly IHangFireRepository _hangFireRepository;
     private static MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
-    public MomoService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration)
+    public MomoService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration,IHangFireRepository hangFireRepository)
     {
         _unitOfWork = unitOfWork;
         _configuration = appConfiguration;
+        _hangFireRepository = hangFireRepository;
     }
     
     public async Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest request)
     {
         var result = new OperationResult<string>();
+        const string methodName = "AutoCancelReservationWhenOverAllowPaymentTime";
         var cacheKey = $"MomoPayment_{request.signature}";
         if(_cache.Get(cacheKey) != null) 
         {
@@ -34,7 +39,8 @@ public class MomoService : IMomoService
             var isValidSignature = request.IsValidSignature(_configuration.MomoConfig.AccessKey, _configuration.MomoConfig.SecretKey);
             if (isValidSignature)
             {
-                var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(Guid.Parse(request.orderId));
+                var id = Guid.Parse(request.orderId);
+                var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(id);
                 if (request.resultCode == 0)
                 {
                     reservation.ReservationStatus = ReservationStatus.AwaitingDriver;
@@ -64,9 +70,18 @@ public class MomoService : IMomoService
                     await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
                     await _unitOfWork.SaveChangeAsync();
                     
+                    
+                    
                     _cache.Set(cacheKey, result, TimeSpan.FromMinutes(7));
                     
                     result.Payload = "Thanh toan thanh cong";
+                    // goi Background Service Check status va refund sau 2p
+                    var timeToCancel = DateTime.UtcNow.AddMinutes(2);
+                    BackgroundJob.Schedule<IBackgroundService>(
+                        x => x.AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver(request.orderId!,request.transId!), timeToCancel);
+                    // delete job chờ thanh toán 
+                    // ở đây gọi HangfireRepository để delete cái job check over allow payment time 
+                    //await _hangFireRepository.DeleteJob(id,methodName);
                 }
                 else
                 {
