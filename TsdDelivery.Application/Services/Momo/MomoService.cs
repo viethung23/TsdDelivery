@@ -75,7 +75,7 @@ public class MomoService : IMomoService
                     _cache.Set(cacheKey, result, TimeSpan.FromMinutes(7));
                     
                     result.Payload = "Thanh toan thanh cong";
-                    // goi Background Service Check status va refund sau 2p
+                    // goi Background Service Check status va refund sau 5p
                     var timeToCancel = DateTime.UtcNow.AddMinutes(5);
                     BackgroundJob.Schedule<IBackgroundService>(
                         x => x.AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver(request.orderId!,request.transId!), timeToCancel);

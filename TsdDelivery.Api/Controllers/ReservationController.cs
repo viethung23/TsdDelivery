@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
-using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Models.Coordinates;
 using TsdDelivery.Application.Models.Reservation.Request;
 
 namespace TsdDelivery.Api.Controllers;
@@ -55,9 +55,9 @@ public class ReservationController : BaseController
     [HttpGet]
     [ValidateModel]
     [Authorize(Policy = "RequireDriverRole")]
-    public async Task<IActionResult> GetAwaitingDriverReservation([FromQuery] Coordinates? coordinates)
+    public async Task<IActionResult> GetAwaitingDriverReservation([FromQuery] CurrentCoordinates? currentCoordinates,[FromQuery] DestinationCoordinates? destinationCoordinates)
     {
-        var response = await _reservationService.GetAwaitingDriverReservation(coordinates);
+        var response = await _reservationService.GetAwaitingDriverReservation(currentCoordinates,destinationCoordinates);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
@@ -71,9 +71,9 @@ public class ReservationController : BaseController
     [ValidateModel]
     [ValidateGuid]
     [Authorize(Policy = "RequireDriverRole")]
-    public async Task<IActionResult> GetAwaitingDriverReservationDetail(Guid id,[FromQuery]Coordinates? coordinates)
+    public async Task<IActionResult> GetAwaitingDriverReservationDetail(Guid reservationId,[FromQuery]CurrentCoordinates? currentCoordinates,[FromQuery] DestinationCoordinates? destinationCoordinates)
     {
-        var response = await _reservationService.GetAwaitingDriverReservationDetail(id,coordinates);
+        var response = await _reservationService.GetAwaitingDriverReservationDetail(reservationId,currentCoordinates,destinationCoordinates);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     

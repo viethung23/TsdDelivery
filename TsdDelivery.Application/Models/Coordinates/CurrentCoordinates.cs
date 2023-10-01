@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TsdDelivery.Application.Models;
+namespace TsdDelivery.Application.Models.Coordinates;
 
-public class Coordinates
+public class CurrentCoordinates
 {
     [Range(-90, 90, ErrorMessage = "Invalid latitude value")]
     public double? Latitude { get; set; }

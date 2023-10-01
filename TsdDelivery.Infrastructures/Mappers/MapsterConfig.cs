@@ -18,6 +18,9 @@ public class MapsterConfig : IRegister
 
         config.NewConfig<Reservation, ReservationAwaitingDriverResponse>()
             .Map(dest => dest.GoodsDto, src => src.Goods);
+        
+        config.NewConfig<Reservation, ReservationAwaitingDriverDetailResponse>()
+            .Map(dest => dest.GoodsDto, src => src.Goods);
         //config.NewConfig<Service, ServiceResponse>();
     }
 }

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
+using TsdDelivery.Application.Models.Coordinates;
 
 namespace TsdDelivery.Application.Services;
 
@@ -14,10 +15,9 @@ public class MapService : IMapService
         _configuration = appConfiguration;
     }
     
-    public async Task<double> CaculateDistanceBetweenTwoCoordinates(double originLat, double originLon,double destLat, double destLon)
+    public async Task<double> CalculateDistanceBetweenTwoCoordinates(double originLat, double originLon,double destLat, double destLon)
     {
         var url = $"https://api.tomtom.com/routing/1/calculateRoute/{originLat},{originLon}:{destLat},{destLon}/json?key={_configuration.Tomtom.ApiKey}";
-        Tomtom tomtom;
         double distance;
         using (var client = new HttpClient())
         {
@@ -27,8 +27,8 @@ public class MapService : IMapService
                 if (response.IsSuccessStatusCode)
                 {
                     var result = response.Content.ReadAsStringAsync().Result;
-                    tomtom = JsonConvert.DeserializeObject<Tomtom>(result);
-                    distance = tomtom.Routes.First().Summary.LengthInMeters;
+                    var tomtom = JsonConvert.DeserializeObject<Tomtom>(result);
+                    distance = tomtom!.Routes.First().Summary.LengthInMeters;
                 }
                 else
                 {
@@ -41,6 +41,45 @@ public class MapService : IMapService
             }
         }
         return await Task.FromResult(distance);
+    }
+
+    public async Task<CoordinateDistance?> CalculateDistanceBetweenFourCoordinates(CurrentCoordinates currentCoordinates, double originLat, double originLon,
+        double destLat, double destLon, DestinationCoordinates coordinates)
+    {
+        var url = $"https://api.tomtom.com/routing/1/calculateRoute/{currentCoordinates.Latitude},{currentCoordinates.Longitude}:{originLat}," +
+                  $"{originLon}:{destLat},{destLon}:{coordinates.LatitudeDes},{coordinates.LongitudeDes}:{currentCoordinates.Latitude},{currentCoordinates.Longitude}" +
+                  $":{coordinates.LatitudeDes},{coordinates.LongitudeDes}/json?key={_configuration.Tomtom.ApiKey}";
+        CoordinateDistance coordinateDistance;
+        using (var client = new HttpClient())
+        {
+            try
+            {
+                var response = client.GetAsync(url).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = response.Content.ReadAsStringAsync().Result;
+                    var tomtom = JsonConvert.DeserializeObject<Tomtom>(result);
+                    var listDistance = tomtom!.Routes.SelectMany(x => x.Legs)
+                        .Select(leg => leg.Summary.LengthInMeters).ToArray();
+                    coordinateDistance = new CoordinateDistance()
+                    {
+                        DistanceFromDriverToReservation = listDistance[0],
+                        DistanceFromReservationToDestinationReservation = listDistance[1],
+                        DistanceFromDestinationReservationToDriverTargetDestination = listDistance[2],
+                        DistanceFromDriverToDriverTargetDestination = listDistance[4]
+                    };
+                }
+                else
+                {
+                    coordinateDistance = null;
+                }
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+        return await Task.FromResult(coordinateDistance);
     }
 }
 
