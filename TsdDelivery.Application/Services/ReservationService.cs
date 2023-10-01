@@ -1,9 +1,9 @@
 using Hangfire;
 using MapsterMapper;
-using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Models.Coordinates;
 using TsdDelivery.Application.Models.Reservation.DTO;
 using TsdDelivery.Application.Models.Reservation.Request;
 using TsdDelivery.Application.Models.Reservation.Response;
@@ -94,7 +94,9 @@ public class ReservationService : IReservationService
                     UserId = _claimsService.GetCurrentUserId,
                     ReservationStatus = ReservationStatus.AwaitingPayment,
                     latitudeSendLocation = request.latitudeSendLocation,
-                    longitudeSendLocation = request.longitudeSendLocation
+                    longitudeSendLocation = request.longitudeSendLocation,
+                    latitudeReciveLocation = request.latitudeReciveLocation,
+                    longitudeReceiveLocation = request.longitudeReceiveLocation
                 };
                 var entity = await _unitOfWork.ReservationRepository.AddAsync(reservation);
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
@@ -138,7 +140,7 @@ public class ReservationService : IReservationService
 
                 await transaction.CommitAsync();
                 
-                // goi Background Service Check status sau 2p
+                // goi Background Service Check status sau 5p
                 var timeToCancel = DateTime.UtcNow.AddMinutes(5);
                 string id = BackgroundJob.Schedule<IBackgroundService>(
                     x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel);
@@ -178,7 +180,7 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<List<ReservationAwaitingDriverResponse>>> GetAwaitingDriverReservation(Coordinates coordinates)
+    public async Task<OperationResult<List<ReservationAwaitingDriverResponse>>> GetAwaitingDriverReservation(CurrentCoordinates currentCoordinates,DestinationCoordinates destinationCoordinates)
     {
         var result = new OperationResult<List<ReservationAwaitingDriverResponse>>();
         try
@@ -191,13 +193,28 @@ public class ReservationService : IReservationService
             {
                 double? dis = null;
                 bool highPriorityLevel = false;
-                if (CheckHasValue(coordinates))
+                if (CheckCurrentCoordinatesHasValue(currentCoordinates))
                 {
-                    dis = await GetDistanseKm(coordinates!.Latitude.Value, coordinates!.Longitude.Value, x.latitudeSendLocation,
-                        x.longitudeSendLocation);
-                    if (dis! <= 10)        // if distance between driver and reservation < 10km
+                    if (CheckDestinationCoordinatesHasValue(destinationCoordinates))
                     {
-                        highPriorityLevel = true;
+                        // goi ham check
+                        var checkXemDonCoNgonKhong = await CheckXemDonCoNgonKhong(currentCoordinates, 
+                            x.latitudeSendLocation, x.longitudeSendLocation, x.latitudeReciveLocation,
+                            x.longitudeReceiveLocation, destinationCoordinates); 
+                        if (checkXemDonCoNgonKhong.Item1)
+                        {
+                            highPriorityLevel = true;
+                            dis = checkXemDonCoNgonKhong.Item2;
+                        }
+                    }
+                    else
+                    {
+                        dis = await GetDistanseKm(currentCoordinates.Latitude!.Value, currentCoordinates.Longitude!.Value, x.latitudeSendLocation,
+                            x.longitudeSendLocation);
+                        if (dis! <= 10)        // if distance between driver and reservation < 10km
+                        {
+                            highPriorityLevel = true;
+                        }
                     }
                 }
                 var response = new ReservationAwaitingDriverResponse()
@@ -240,14 +257,14 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<ReservationAwaitingDriverResponse>> GetAwaitingDriverReservationDetail(Guid id, Coordinates coordinates)
+    public async Task<OperationResult<ReservationAwaitingDriverDetailResponse>> GetAwaitingDriverReservationDetail(Guid reservationId, CurrentCoordinates currentCoordinates, DestinationCoordinates destinationCoordinates)
     {
-        var result = new OperationResult<ReservationAwaitingDriverResponse>();
+        var result = new OperationResult<ReservationAwaitingDriverDetailResponse>();
         try
         {
-            var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(id);
-            var test = await _unitOfWork.ReservationRepository.GetReservationDetail(id);
-            result.Payload = _mapper.Map<ReservationAwaitingDriverResponse>(reservation);
+            var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservationId);
+            var test = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
+            result.Payload = _mapper.Map<ReservationAwaitingDriverDetailResponse>(reservation!);
         }
         catch (Exception e)
         {
@@ -339,7 +356,7 @@ public class ReservationService : IReservationService
         try
         {
             var distance =
-                await _mapService.CaculateDistanceBetweenTwoCoordinates(originLat, originLon, destLat, destLon);
+                await _mapService.CalculateDistanceBetweenTwoCoordinates(originLat, originLon, destLat, destLon);
             var km = distance / 1000;
             return km;
         }
@@ -349,15 +366,32 @@ public class ReservationService : IReservationService
         }
     }
 
-    private bool CheckHasValue(Coordinates coordinates)
+    private async Task<(bool,double?)> CheckXemDonCoNgonKhong(CurrentCoordinates currentCoordinates, double originLat, double originLon,
+        double destLat, double destLon, DestinationCoordinates coordinates)
     {
-        if (coordinates!.Longitude.HasValue && coordinates!.Latitude.HasValue)
+        var coordinateDistance = await _mapService.CalculateDistanceBetweenFourCoordinates(currentCoordinates, originLat, originLon,
+            destLat, destLon, coordinates);
+        // thực hiện logic 
+        var abc = coordinateDistance!.DistanceFromDriverToReservation +
+                coordinateDistance.DistanceFromReservationToDestinationReservation +
+                coordinateDistance.DistanceFromDestinationReservationToDriverTargetDestination;
+        var ad = coordinateDistance.DistanceFromDriverToDriverTargetDestination;
+        if (abc <= ad + 15000) // neu khoang cach lay hang roi di ve khong lon hon qua 15km so voi khoang cach ban dau thi day la 1 don hang ngon
         {
-            return true;
+            return (true,coordinateDistance.DistanceFromDriverToReservation/1000);
         }
         else
         {
-            return false;
+            return (true,null);
         }
+    }
+
+    private bool CheckCurrentCoordinatesHasValue(CurrentCoordinates currentCoordinates)
+    {
+        return currentCoordinates!.Longitude.HasValue && currentCoordinates!.Latitude.HasValue;
+    }
+    private bool CheckDestinationCoordinatesHasValue(DestinationCoordinates destinationCoordinates)
+    {
+        return destinationCoordinates!.LongitudeDes.HasValue && destinationCoordinates!.LatitudeDes.HasValue;
     }
 }

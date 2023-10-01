@@ -21,6 +21,6 @@ public class ReservationRepository : GenericRepository<Reservation>,IReservation
             .ThenInclude(x => x.Service)
             .ThenInclude(x => x.VehicleType).First();
 
-        return reservation;
+        return await Task.FromResult(reservation);
     }
 }
