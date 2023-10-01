@@ -1,9 +1,8 @@
 using TsdDelivery.Application.Models.Reservation.DTO;
-using TsdDelivery.Domain.Entities.Enums;
 
 namespace TsdDelivery.Application.Models.Reservation.Response;
 
-public class ReservationResponse
+public class ReservationAwaitingDriverResponse
 {
     public Guid Id { get; set; }
     public string SendLocation { get; set; }
@@ -16,4 +15,6 @@ public class ReservationResponse
     public DateTime PickUpDateTime { get; set; }
     public decimal TotallPrice { get; set; }
     public string ReservationStatus { get; set; }
+    public double? distanceFromCurrentReservationToYou { get; set; }
+    public bool HighPriorityLevel { get; set; }
 }

@@ -85,7 +85,7 @@ public class ReservationService : IReservationService
                     Distance = request.Distance,
                     RecipientName = request.RecipientName,
                     RecipientPhone = request.RecipientPhone,
-                    ReciveLocation = request.ReciveLocation,
+                    ReciveLocation = request.ReceiveLocation,
                     SendLocation = request.SendLocation,
                     IsNow = request.IsNow,
                     PickUpDateTime = request.IsNow == true ? DateTime.UtcNow.AddHours(7) : request.PickUpDateTime!.Value,
@@ -139,7 +139,7 @@ public class ReservationService : IReservationService
                 await transaction.CommitAsync();
                 
                 // goi Background Service Check status sau 2p
-                var timeToCancel = DateTime.UtcNow.AddMinutes(2);
+                var timeToCancel = DateTime.UtcNow.AddMinutes(5);
                 string id = BackgroundJob.Schedule<IBackgroundService>(
                     x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel);
             }
@@ -178,24 +178,29 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<List<ReservationResponse>>> GetAwaitingDriverReservation(Coordinates coordinates)
+    public async Task<OperationResult<List<ReservationAwaitingDriverResponse>>> GetAwaitingDriverReservation(Coordinates coordinates)
     {
-        var result = new OperationResult<List<ReservationResponse>>();
+        var result = new OperationResult<List<ReservationAwaitingDriverResponse>>();
         try
         {
             var reservations =
                 await _unitOfWork.ReservationRepository.GetMulti(x =>
                     x.ReservationStatus == ReservationStatus.AwaitingDriver);
-            var list = new List<ReservationResponse>();
+            var list = new List<ReservationAwaitingDriverResponse>();
             foreach (var x in reservations)
             {
                 double? dis = null;
+                bool highPriorityLevel = false;
                 if (CheckHasValue(coordinates))
                 {
                     dis = await GetDistanseKm(coordinates!.Latitude.Value, coordinates!.Longitude.Value, x.latitudeSendLocation,
                         x.longitudeSendLocation);
+                    if (dis! <= 10)        // if distance between driver and reservation < 10km
+                    {
+                        highPriorityLevel = true;
+                    }
                 }
-                var response = new ReservationResponse()
+                var response = new ReservationAwaitingDriverResponse()
                 {
                     Id = x.Id,
                     RecipientName = x.RecipientName,
@@ -208,6 +213,7 @@ public class ReservationService : IReservationService
                     TotallPrice = x.TotallPrice,
                     Distance = x.Distance,
                     distanceFromCurrentReservationToYou = dis ?? null,
+                    HighPriorityLevel = highPriorityLevel,
                     GoodsDto = new GoodsDto
                     {
                         Width = x.Goods.Width,
@@ -234,14 +240,14 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<ReservationResponse>> GetAwaitingDriverReservationDetail(Guid id,
-        Coordinates coordinates)
+    public async Task<OperationResult<ReservationAwaitingDriverResponse>> GetAwaitingDriverReservationDetail(Guid id, Coordinates coordinates)
     {
-        var result = new OperationResult<ReservationResponse>();
+        var result = new OperationResult<ReservationAwaitingDriverResponse>();
         try
         {
             var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(id);
-            result.Payload = _mapper.Map<ReservationResponse>(reservation);
+            var test = await _unitOfWork.ReservationRepository.GetReservationDetail(id);
+            result.Payload = _mapper.Map<ReservationAwaitingDriverResponse>(reservation);
         }
         catch (Exception e)
         {
@@ -252,6 +258,53 @@ public class ReservationService : IReservationService
             _unitOfWork.Dispose();
         }
 
+        return result;
+    }
+
+    public async Task<OperationResult<ReservationResponse>> AcceptReservation(Guid driverId, Guid reservationId)
+    {
+        var result = new OperationResult<ReservationResponse>();
+        try
+        {
+            var driver = await _unitOfWork.UserRepository.GetByIdAsync(driverId);
+            var claimId = _claimsService.GetCurrentUserId;
+            if (!claimId.Equals(driverId))
+            {
+                result.AddError(ErrorCode.ServerError,"The driverID does not match the account used to login");
+                return result;
+            }
+            var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservationId);
+            if (!reservation!.ReservationStatus.Equals(ReservationStatus.AwaitingDriver))
+            {
+                switch (reservation.ReservationStatus)
+                {
+                    case ReservationStatus.AwaitingPayment:
+                        result.AddError(ErrorCode.ServerError,"đơn hàng này đang trong trạng thái chờ thanh toán");
+                        break;
+                    case ReservationStatus.Cancelled:
+                        result.AddError(ErrorCode.ServerError,"đơn hàng này đã bị cancel");
+                        break;
+                    case ReservationStatus.Completed:
+                        result.AddError(ErrorCode.ServerError,"đơn hàng này đã hoàn thành");
+                        break;
+                    default:
+                        result.AddError(ErrorCode.ServerError,"đơn hàng này đã được nhận bởi tài xế khác");
+                        break;
+                }
+                return result;
+            }
+            reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
+            reservation.Driver = driver;
+            await _unitOfWork.SaveChangeAsync();
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
         return result;
     }
 

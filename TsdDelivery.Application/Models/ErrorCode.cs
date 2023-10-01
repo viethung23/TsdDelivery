@@ -4,7 +4,8 @@ public enum ErrorCode
 {
     NotFound = 404,
     ServerError = 500,
-
+    UnAuthorize = 401,
+    Forbidden = 403,
     //Validation errors should be in the range 100 - 199
     ValidationError = 101,
     

@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TsdDelivery.Api.Filters;
@@ -20,6 +22,7 @@ public static class DependencyInjection
             config.Filters.Add(typeof(TsdDeliveryExceptionHandler));
         });
         services.AddEndpointsApiExplorer();
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareHandler>();
         //----------------------------------------------------------------------------------------------
         //for appear summary
         services.AddSwaggerGen(options =>
@@ -81,6 +84,13 @@ public static class DependencyInjection
                     ValidateAudience = false
                 };
             });
+        //------------------------------------------------------------------------
+        services.AddAuthorization(opt =>
+        {
+            opt.AddPolicy("RequireDriverRole", policy => policy.RequireRole("DRIVER"));
+            opt.AddPolicy("RequireUserRole", policy => policy.RequireRole("USER"));
+        });
+        
         //------------------------------------------------------------------------
         
         services.AddScoped<IClaimsService, ClaimsService>();

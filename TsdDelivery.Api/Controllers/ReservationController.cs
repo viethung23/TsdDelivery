@@ -10,11 +10,9 @@ namespace TsdDelivery.Api.Controllers;
 public class ReservationController : BaseController
 {
     private readonly IReservationService _reservationService;
-    private readonly IMapService _mapService;
-    public ReservationController(IReservationService reservationService,IMapService mapService)
+    public ReservationController(IReservationService reservationService)
     {
         _reservationService = reservationService;
-        _mapService = mapService;
     }
     
     [HttpPost]
@@ -32,7 +30,7 @@ public class ReservationController : BaseController
     /// <returns></returns>
     [HttpPost]
     [ValidateModel]
-    [Authorize]
+    [Authorize(Policy = "RequireUserRole")]
     public async Task<IActionResult> CreateReservation(CreateReservationRequest request)
     {
         var response = await _reservationService.CreateReservation(request);
@@ -56,6 +54,7 @@ public class ReservationController : BaseController
     /// <returns></returns>
     [HttpGet]
     [ValidateModel]
+    [Authorize(Policy = "RequireDriverRole")]
     public async Task<IActionResult> GetAwaitingDriverReservation([FromQuery] Coordinates? coordinates)
     {
         var response = await _reservationService.GetAwaitingDriverReservation(coordinates);
@@ -70,6 +69,8 @@ public class ReservationController : BaseController
     /// <returns></returns>
     [HttpGet]
     [ValidateModel]
+    [ValidateGuid]
+    [Authorize(Policy = "RequireDriverRole")]
     public async Task<IActionResult> GetAwaitingDriverReservationDetail(Guid id,[FromQuery]Coordinates? coordinates)
     {
         var response = await _reservationService.GetAwaitingDriverReservationDetail(id,coordinates);
@@ -81,15 +82,12 @@ public class ReservationController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpPost]
+    [ValidateGuid]
+    [Authorize(Policy = "RequireDriverRole")]
     public async Task<IActionResult> AcceptReservation(Guid driverId,Guid reservationId)
     {
-        return Ok();
+        var response = await _reservationService.AcceptReservation(driverId, reservationId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Success!");
     }
-
-    [HttpGet]
-    public async Task<IActionResult> Test(double originLat, double originLon,double destLat, double destLon)
-    {
-        var response = await _mapService.CaculateDistanceBetweenTwoCoordinates( originLat,  originLon, destLat,  destLon);
-        return Ok(response);
-    }
+    
 }

@@ -6,6 +6,6 @@ public enum ReservationStatus
     AwaitingDriver,
     Cancelled,
     Completed,
-    
-    
+    OnTheWayToPickupPoint,
+    InDelivery
 }

@@ -4,4 +4,5 @@ namespace TsdDelivery.Application.Repositories;
 
 public interface IReservationRepository : IGenericRepository<Reservation>
 {
+    Task<Reservation> GetReservationDetail(Guid id);
 }
