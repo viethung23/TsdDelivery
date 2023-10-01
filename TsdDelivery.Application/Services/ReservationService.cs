@@ -1,4 +1,5 @@
 using Hangfire;
+using Mapster;
 using MapsterMapper;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
@@ -180,14 +181,14 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<List<ReservationAwaitingDriverResponse>>> GetAwaitingDriverReservation(CurrentCoordinates currentCoordinates,DestinationCoordinates destinationCoordinates)
+    public async Task<OperationResult<List<ReservationAwaitingDriverResponse>>> GetAwaitingDriverReservation(CurrentCoordinates currentCoordinates,DestinationCoordinates destinationCoordinates,bool isNow)
     {
         var result = new OperationResult<List<ReservationAwaitingDriverResponse>>();
         try
         {
             var reservations =
                 await _unitOfWork.ReservationRepository.GetMulti(x =>
-                    x.ReservationStatus == ReservationStatus.AwaitingDriver);
+                    x.ReservationStatus == ReservationStatus.AwaitingDriver && x.IsNow == isNow);
             var list = new List<ReservationAwaitingDriverResponse>();
             foreach (var x in reservations)
             {
@@ -260,11 +261,46 @@ public class ReservationService : IReservationService
     public async Task<OperationResult<ReservationAwaitingDriverDetailResponse>> GetAwaitingDriverReservationDetail(Guid reservationId, CurrentCoordinates currentCoordinates, DestinationCoordinates destinationCoordinates)
     {
         var result = new OperationResult<ReservationAwaitingDriverDetailResponse>();
+        double? dis = null;
+        bool highPriorityLevel = false;
         try
         {
             var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservationId);
+            if (reservation!.ReservationStatus != ReservationStatus.AwaitingDriver)
+            {
+                result.AddError(ErrorCode.ServerError,"This reservation is no longer in AwaitingDriver status!");
+                return result;
+            }
+            if (CheckCurrentCoordinatesHasValue(currentCoordinates))
+            {
+                
+                if (CheckDestinationCoordinatesHasValue(destinationCoordinates))
+                {
+                    // goi ham check
+                    var checkXemDonCoNgonKhong = await CheckXemDonCoNgonKhong(currentCoordinates, 
+                        reservation.latitudeSendLocation, reservation.longitudeSendLocation, reservation.latitudeReciveLocation,
+                        reservation.longitudeReceiveLocation, destinationCoordinates); 
+                    if (checkXemDonCoNgonKhong.Item1)
+                    {
+                        highPriorityLevel = true;
+                        dis = checkXemDonCoNgonKhong.Item2;
+                    }
+                }
+                else
+                {
+                    dis = await GetDistanseKm(currentCoordinates.Latitude!.Value, currentCoordinates.Longitude!.Value, reservation.latitudeSendLocation,
+                        reservation.longitudeSendLocation);
+                    if (dis! <= 10)        // if distance between driver and reservation < 10km
+                    {
+                        highPriorityLevel = true;
+                    }
+                }
+            }
             var test = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
-            result.Payload = _mapper.Map<ReservationAwaitingDriverDetailResponse>(reservation!);
+            var response = _mapper.Map<ReservationAwaitingDriverDetailResponse>(reservation!);
+            response.HighPriorityLevel = highPriorityLevel;
+            response.distanceFromCurrentReservationToYou = dis ?? null;
+            result.Payload = response;
         }
         catch (Exception e)
         {

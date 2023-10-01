@@ -55,9 +55,9 @@ public class ReservationController : BaseController
     [HttpGet]
     [ValidateModel]
     [Authorize(Policy = "RequireDriverRole")]
-    public async Task<IActionResult> GetAwaitingDriverReservation([FromQuery] CurrentCoordinates? currentCoordinates,[FromQuery] DestinationCoordinates? destinationCoordinates)
+    public async Task<IActionResult> GetAwaitingDriverReservation([FromQuery] CurrentCoordinates? currentCoordinates,[FromQuery] DestinationCoordinates? destinationCoordinates,bool isNow = true)
     {
-        var response = await _reservationService.GetAwaitingDriverReservation(currentCoordinates,destinationCoordinates);
+        var response = await _reservationService.GetAwaitingDriverReservation(currentCoordinates,destinationCoordinates,isNow);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
