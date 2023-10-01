@@ -17,4 +17,5 @@ public class ReservationAwaitingDriverDetailResponse
     public string ReservationStatus { get; set; }
     public double? distanceFromCurrentReservationToYou { get; set; }
     public bool HighPriorityLevel { get; set; }
+    public string VehicleType { get; set; }
 }
