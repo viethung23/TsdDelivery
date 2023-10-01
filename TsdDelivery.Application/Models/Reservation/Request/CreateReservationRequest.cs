@@ -9,15 +9,23 @@ public class CreateReservationRequest
     public string SendLocation { get; set; }
     
     [Required]
-    [Range(-90, 90, ErrorMessage = "Invalid latitude value")]
+    [Range(-90, 90, ErrorMessage = "Invalid latitude Send Location value")]
     public double latitudeSendLocation { get; set; }
     
     [Required]
-    [Range(-180, 180, ErrorMessage = "Invalid longitude value")]
+    [Range(-180, 180, ErrorMessage = "Invalid longitude Send Location value")]
     public double longitudeSendLocation { get; set; }
     
     [Required]
-    public string ReciveLocation { get; set; }
+    public string ReceiveLocation { get; set; }
+    
+    [Required]
+    [Range(-90, 90, ErrorMessage = "Invalid latitude Receive Location value")]
+    public double latitudeReciveLocation { get; set; }
+    
+    [Required]
+    [Range(-180, 180, ErrorMessage = "Invalid longitude Receive Location value")]
+    public double longitudeReceiveLocation { get; set; }
     
     [Required]
     public string RecipientName { get; set; }

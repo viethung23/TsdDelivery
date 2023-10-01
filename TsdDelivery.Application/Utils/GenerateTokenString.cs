@@ -20,7 +20,7 @@ public static class GenerateTokenString
             new Claim("UserId", user.Id.ToString()),
             new Claim("PhoneNumber", user.PhoneNumber),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim("Role",user.Role.RoleName),
+            new Claim(ClaimTypes.Role,user.Role!.RoleName),
             new Claim("RoleId",user.Role.Id.ToString()),
         };
 

@@ -8,6 +8,8 @@ public class Reservation : BaseEntity
     public double latitudeSendLocation { get; set; }
     public double longitudeSendLocation { get; set; }
     public string ReciveLocation { get; set; }
+    public double latitudeReciveLocation { get; set; }
+    public double longitudeReceiveLocation { get; set; }
     public string RecipientName { get; set; }
     public string RecipientPhone { get; set;}
     public decimal Distance { get; set; }
