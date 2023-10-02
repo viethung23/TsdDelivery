@@ -202,9 +202,13 @@ public class ReservationService : IReservationService
                         var checkXemDonCoNgonKhong = await CheckXemDonCoNgonKhong(currentCoordinates, 
                             x.latitudeSendLocation, x.longitudeSendLocation, x.latitudeReciveLocation,
                             x.longitudeReceiveLocation, destinationCoordinates); 
-                        if (checkXemDonCoNgonKhong.Item1)
+                        if (checkXemDonCoNgonKhong.Item1 == true)
                         {
                             highPriorityLevel = true;
+                            dis = checkXemDonCoNgonKhong.Item2;
+                        }
+                        if (checkXemDonCoNgonKhong.Item1 == false)
+                        {
                             dis = checkXemDonCoNgonKhong.Item2;
                         }
                     }
