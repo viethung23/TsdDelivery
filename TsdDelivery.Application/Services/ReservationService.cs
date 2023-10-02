@@ -184,6 +184,8 @@ public class ReservationService : IReservationService
     public async Task<OperationResult<List<ReservationAwaitingDriverResponse>>> GetAwaitingDriverReservation(CurrentCoordinates currentCoordinates,DestinationCoordinates destinationCoordinates,bool isNow)
     {
         var result = new OperationResult<List<ReservationAwaitingDriverResponse>>();
+        string reciveLocation;
+        string sendLocation;
         try
         {
             var reservations =
@@ -194,6 +196,7 @@ public class ReservationService : IReservationService
             {
                 double? dis = null;
                 bool highPriorityLevel = false;
+                
                 if (CheckCurrentCoordinatesHasValue(currentCoordinates))
                 {
                     if (CheckDestinationCoordinatesHasValue(destinationCoordinates))
@@ -222,13 +225,16 @@ public class ReservationService : IReservationService
                         }
                     }
                 }
+
+                reciveLocation = CatChuoi(x.ReciveLocation);
+                sendLocation = CatChuoi(x.SendLocation);
                 var response = new ReservationAwaitingDriverResponse()
                 {
                     Id = x.Id,
                     RecipientName = x.RecipientName,
                     RecipientPhone = x.RecipientPhone,
-                    ReciveLocation = x.ReciveLocation,
-                    SendLocation = x.SendLocation,
+                    ReciveLocation = reciveLocation,
+                    SendLocation = sendLocation,
                     IsNow = x.IsNow,
                     PickUpDateTime = x.PickUpDateTime,
                     ReservationStatus = x.ReservationStatus.ToString(),
@@ -438,5 +444,22 @@ public class ReservationService : IReservationService
     private bool CheckDestinationCoordinatesHasValue(DestinationCoordinates destinationCoordinates)
     {
         return destinationCoordinates!.LongitudeDes.HasValue && destinationCoordinates!.LatitudeDes.HasValue;
+    }
+
+    private string CatChuoi(string s)
+    {
+        string result = "";
+        var x = "";
+        if (!s.Contains(','))
+        {
+            return s;
+        }
+        string[] arrListStr = s.Split(',');
+        for (int i = arrListStr.Length - 1; i > 0; i--) {
+            result += arrListStr[i-2] +","+ arrListStr[i-1];
+            x = result.Trim();
+            break;
+        }
+        return x;
     }
 }
