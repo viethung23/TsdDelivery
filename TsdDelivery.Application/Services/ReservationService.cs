@@ -369,6 +369,7 @@ public class ReservationService : IReservationService
         return result;
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------------
     private decimal CalculateShippingRateByKm(decimal km, List<ShippingRate> list)
     {
         decimal total = 0;
