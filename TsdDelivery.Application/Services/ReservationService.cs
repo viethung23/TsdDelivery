@@ -285,6 +285,10 @@ public class ReservationService : IReservationService
                         highPriorityLevel = true;
                         dis = checkXemDonCoNgonKhong.Item2;
                     }
+                    else
+                    {
+                        dis = checkXemDonCoNgonKhong.Item2;
+                    }
                 }
                 else
                 {
@@ -418,7 +422,7 @@ public class ReservationService : IReservationService
         }
         else
         {
-            return (true,null);
+            return (false,coordinateDistance.DistanceFromDriverToReservation/1000);
         }
     }
 
