@@ -69,7 +69,7 @@ public class ReservationService : IReservationService
         {
             try
             {
-                if (request.IsNow == false && request.PickUpDateTime < DateTime.UtcNow.AddHours(7))
+                if (request.IsNow == false && request.PickUpDateTime < _currentTime.GetCurrentTime())
                 {
                     throw new Exception($"pickUpDateTime can not be less than now");
                 }
@@ -89,7 +89,7 @@ public class ReservationService : IReservationService
                     ReciveLocation = request.ReceiveLocation,
                     SendLocation = request.SendLocation,
                     IsNow = request.IsNow,
-                    PickUpDateTime = request.IsNow == true ? DateTime.UtcNow.AddHours(7) : request.PickUpDateTime!.Value,
+                    PickUpDateTime = request.IsNow == true ? _currentTime.GetCurrentTime() : request.PickUpDateTime!.Value,
                     Goods = goods,
                     TotallPrice = request.TotalPrice,
                     UserId = _claimsService.GetCurrentUserId,

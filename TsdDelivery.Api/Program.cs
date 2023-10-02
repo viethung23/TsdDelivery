@@ -17,6 +17,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(builder =>
     {
         builder.WithOrigins("http://localhost:3000",
+                "http://localhost:3001",
                 "https://exe202.vercel.app")
             .AllowAnyHeader()
             .AllowAnyMethod()
