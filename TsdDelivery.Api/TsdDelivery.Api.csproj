@@ -46,5 +46,19 @@
     <ProjectReference Include="..\TsdDelivery.Infrastructures\TsdDelivery.Infrastructures.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Properties\ServiceDependencies\tsdlinuxserverapi - Zip Deploy\profile.arm.json" />
+    <None Remove="Properties\PublishProfiles\tsddelivery - FTP.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsddelivery - Web Deploy.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsddelivery - Zip Deploy.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsddeliveryapi - FTP.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsddeliveryapi - Web Deploy.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsddeliveryapi - Zip Deploy.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsdlinuxserverapi - FTP.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsdlinuxserverapi - ReadOnly - FTP.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsdlinuxserverapi - Web Deploy.pubxml" />
+    <None Remove="Properties\PublishProfiles\tsdlinuxserverapi - Zip Deploy.pubxml" />
+  </ItemGroup>
+
 
 </Project>
