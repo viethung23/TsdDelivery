@@ -34,7 +34,7 @@ public class CreateReservationRequest
     public string RecipientPhone { get; set;}
     
     [Required]
-    [Range(0.1f,9999)]
+    [Range(1f,9999)]
     public decimal Distance { get; set; }
     
     [Required]
