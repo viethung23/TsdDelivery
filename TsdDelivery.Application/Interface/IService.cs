@@ -10,5 +10,5 @@ public interface IService
     public Task<OperationResult<List<ServiceResponse>>> GetAllService();
     public Task<OperationResult<ServiceResponse>> CreateService(CreateServiceRequest request);
     public Task<OperationResult<ServiceResponse>> DeleteService(Guid serviceId,Guid vehicleTypeId);
-    public Task<OperationResult<List<ServiceResponse>>> GetServicesByVehicleId(Guid vehicleTypeId);
+    public Task<OperationResult<List<ServiceResponseDetail>>> GetServicesByVehicleId(Guid vehicleTypeId);
 }

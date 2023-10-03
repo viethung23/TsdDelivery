@@ -122,14 +122,26 @@ public class ServiceService : IService
         return result;
     }
 
-    public async Task<OperationResult<List<ServiceResponse>>> GetServicesByVehicleId(Guid vehicleTypeId)
+    public async Task<OperationResult<List<ServiceResponseDetail>>> GetServicesByVehicleId(Guid vehicleTypeId)
     {
-        var result = new OperationResult<List<ServiceResponse>>();
+        var result = new OperationResult<List<ServiceResponseDetail>>();
         try
         {
             var vehicle = await _unitOfWork.VehicleTypeReposiory.GetByIdAsync(vehicleTypeId);
             var services = await _unitOfWork.ServiceRepository.GetMulti(s => s.VehicleTypeId.Equals(vehicleTypeId));
-            var list = _mapper.Map<List<ServiceResponse>>(services);
+            var list = new List<ServiceResponseDetail>();
+            foreach (var service in services)
+            {
+                var serviceResponseDetail = new ServiceResponseDetail()
+                {
+                    Id = service.Id,
+                    ServiceName = service.ServiceName,
+                    Description = service.Description,
+                    Price = service.Price,
+                    IsShow = service.Price != 0M
+                };
+                list.Add(serviceResponseDetail);
+            }
             result.Payload = list;
         }
         catch (Exception e)

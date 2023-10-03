@@ -51,6 +51,7 @@ public class ServiceController : BaseController
     }
 
     [HttpGet]
+    [ValidateGuid]
     public async Task<IActionResult> GetServicesByVehicleTypeId(Guid vehicleTypeId)
     {
         var response = await _service.GetServicesByVehicleId(vehicleTypeId);
