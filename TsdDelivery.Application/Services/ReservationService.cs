@@ -456,7 +456,7 @@ public class ReservationService : IReservationService
         }
         string[] arrListStr = s.Split(',');
         for (int i = arrListStr.Length - 1; i > 0; i--) {
-            result += arrListStr[i-2] +","+ arrListStr[i-1];
+            result += arrListStr[i-1] +","+ arrListStr[i];
             x = result.Trim();
             break;
         }
