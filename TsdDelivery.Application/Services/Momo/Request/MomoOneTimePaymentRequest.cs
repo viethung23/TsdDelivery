@@ -18,11 +18,12 @@ public class MomoOneTimePaymentRequest
     public string requestType { get; set; } = string.Empty;
     public string extraData { get; set; } = string.Empty;
     public string lang { get; set; } = string.Empty;
+    public string partnerName { get; set; } = String.Empty;
     public string signature { get; set; } = string.Empty;
 
     public MomoOneTimePaymentRequest(string partnerCode, string requestId,
         long amount, string orderId, string orderInfo, string redirectUrl,
-        string ipnUrl, string requestType, string extraData, string lang = "vi")
+        string ipnUrl, string requestType, string extraData, string lang = "vi", string partnerName = "TSD")
     {
         this.partnerCode = partnerCode;
         this.requestId = requestId;
@@ -34,6 +35,7 @@ public class MomoOneTimePaymentRequest
         this.requestType = requestType;
         this.extraData = extraData;
         this.lang = lang;
+        this.partnerName = partnerName;
     }
     
     public void MakeSignature(string accessKey, string secretKey)
