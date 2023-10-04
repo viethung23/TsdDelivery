@@ -22,6 +22,13 @@ public class MapsterConfig : IRegister
         config.NewConfig<Reservation, ReservationAwaitingDriverDetailResponse>()
             .Map(dest => dest.GoodsDto, src => src.Goods)
             .Map(dest => dest.VehicleType,src => src.reservationDetails.Select(x => x.Service.VehicleType.VehicleTypeName).FirstOrDefault());
+        
+        config.NewConfig<Reservation, ReservationHistoryResponse>()
+            .Map(dest => dest.VehicleType,src => src.reservationDetails.Select(x => x.Service.VehicleType.VehicleTypeName).FirstOrDefault());
+
+        config.NewConfig<Reservation, ReservationHistoryDetailResponse>()
+            .Map(dest => dest.GoodsDto, src => src.Goods)
+            .Map(dest => dest.DriverDto, src => src.Driver);
         //config.NewConfig<Service, ServiceResponse>();
     }
 }

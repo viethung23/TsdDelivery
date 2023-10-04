@@ -89,5 +89,30 @@ public class ReservationController : BaseController
         var response = await _reservationService.AcceptReservation(driverId, reservationId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Success!");
     }
+
+    /// <summary>
+    /// Api for Customer
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Authorize(Policy = "RequireUserRole")]
+    public async Task<IActionResult> GetReservationHistoryForUser()
+    {
+        var response = await _reservationService.GetReservationHistoryForUser();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
     
+    /// <summary>
+    /// Api for Customer 
+    /// </summary>
+    /// <param name="reservationId"></param>
+    /// <returns></returns>
+    [HttpGet]
+    [ValidateGuid]
+    [Authorize(Policy = "RequireUserRole")]
+    public async Task<IActionResult> GetReservationHistoryDetailForUser(Guid reservationId)
+    {
+        var response = await _reservationService.GetReservationHistoryDetailForUser(reservationId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

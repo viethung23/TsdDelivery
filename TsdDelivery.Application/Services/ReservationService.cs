@@ -375,6 +375,53 @@ public class ReservationService : IReservationService
         return result;
     }
 
+    public async Task<OperationResult<List<ReservationHistoryResponse>>> GetReservationHistoryForUser()
+    {
+        var result = new OperationResult<List<ReservationHistoryResponse>>();
+        try
+        {
+            var loggedInUserId = _claimsService.GetCurrentUserId;
+            var reHistory = await _unitOfWork.ReservationRepository.GetReservationHistoryForUser(loggedInUserId);
+            result.Payload = _mapper.Map<List<ReservationHistoryResponse>>(reHistory);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<ReservationHistoryDetailResponse>> GetReservationHistoryDetailForUser(Guid reservationId)
+    {
+        var result = new OperationResult<ReservationHistoryDetailResponse>();
+        try
+        {
+            var loggedInUserId = _claimsService.GetCurrentUserId;
+            var reHistoryDetail = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
+            if (!loggedInUserId.Equals(reHistoryDetail.UserId))
+            {
+                result.AddError(ErrorCode.ServerError,"This reservation does not belong to you.");
+                return result;
+            }
+            result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+
+        return result;
+    }
+
     //--------------------------------------------------------------------------------------------------------------------------------
     private decimal CalculateShippingRateByKm(decimal km, List<ShippingRate> list)
     {
