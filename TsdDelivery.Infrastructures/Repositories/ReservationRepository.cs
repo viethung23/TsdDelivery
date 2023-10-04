@@ -17,10 +17,20 @@ public class ReservationRepository : GenericRepository<Reservation>,IReservation
     public async Task<Reservation> GetReservationDetail(Guid id)
     {
         var reservation = _dbSet.Where(x => x.Id == id)
+            .Include(x => x.Driver)
             .Include(x => x.reservationDetails)
             .ThenInclude(x => x.Service)
             .ThenInclude(x => x.VehicleType).First();
 
         return await Task.FromResult(reservation);
+    }
+
+    public Task<List<Reservation>> GetReservationHistoryForUser(Guid userId)
+    {
+        var reservation = _dbSet.Where(x => x.UserId == userId)
+            .Include(x => x.reservationDetails)
+            .ThenInclude(x => x.Service)
+            .ThenInclude(x => x.VehicleType).ToListAsync();
+        return reservation;
     }
 }
