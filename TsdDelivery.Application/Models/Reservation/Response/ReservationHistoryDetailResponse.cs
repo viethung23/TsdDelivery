@@ -6,6 +6,7 @@ namespace TsdDelivery.Application.Models.Reservation.Response;
 public class ReservationHistoryDetailResponse
 {
     public Guid Id { get; set; }
+    public string sender { get; set; }
     public string SendLocation { get; set; }
     public string ReciveLocation { get; set; }
     public string RecipientName { get; set; }

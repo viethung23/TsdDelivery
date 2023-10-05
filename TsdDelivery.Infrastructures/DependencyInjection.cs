@@ -12,6 +12,7 @@ using MapsterMapper;
 using StackExchange.Redis;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Services.Momo;
+using TsdDelivery.Application.Services.ZaloPay;
 using TsdDelivery.Infrastructures.Repositories;
 
 namespace TsdDelivery.Infrastructures;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<IShippingRateService, ShippingRateService>();
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IMomoService, MomoService>();
+        services.AddScoped<IZaloPayService, ZaloPayService>();
         services.AddScoped<IWalletService, WalletService>();
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<IMapService, MapService>();
