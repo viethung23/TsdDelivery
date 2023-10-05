@@ -22,9 +22,12 @@ public class ReservationService : IReservationService
     private readonly ICurrentTime _currentTime;
     private readonly IMapService _mapService;
     private readonly IClaimsService _claimsService;
+    private readonly IMomoService _momoService;
+    private readonly IZaloPayService _zaloPayService;
 
     public ReservationService(IUnitOfWork unitOfWork, IMapper mapper, AppConfiguration appConfiguration,
-        ICurrentTime currentTime, IClaimsService claimsService, IMapService mapService)
+        ICurrentTime currentTime, IClaimsService claimsService, IMapService mapService, IMomoService momoService,
+        IZaloPayService zaloPayService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -32,6 +35,8 @@ public class ReservationService : IReservationService
         _currentTime = currentTime;
         _claimsService = claimsService;
         _mapService = mapService;
+        _momoService = momoService;
+        _zaloPayService = zaloPayService;
     }
 
     public async Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request)
@@ -112,33 +117,44 @@ public class ReservationService : IReservationService
                 }
 
                 // thưc hiện chức năng thanh toán ở đây sau khi tạo xong đơn 
-                // đang để defaut phương thức thanh toán là MOMO
-                var paymentMethod = "Momo";
-                var paymentUrl = string.Empty;
-                var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_configuration.MomoConfig.PartnerCode,
-                    DateTime.Now.Ticks.ToString() + entity.Id ?? string.Empty, (long)request.TotalPrice!,
-                    entity.Id!.ToString() ?? string.Empty,
-                    "Thanh toán đặt xe TSD" ?? string.Empty, _configuration.MomoConfig.ReturnUrl,
-                    _configuration.MomoConfig.IpnUrl, "captureWallet",
-                    string.Empty);
-                momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey,
-                    _configuration.MomoConfig.SecretKey);
-                (bool createMomoLinkResult, string? createMessage, string? deepLink) =
-                    momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
-                if (createMomoLinkResult)
+                var paymentMethod = request.PaymentMethod.ToUpper();
+                switch (paymentMethod)
                 {
-                    result.Payload = new CreateReservationResponse()
-                    {
-                        Id = entity.Id,
-                        PaymentUrl = createMessage,
-                        deeplink = deepLink
-                    };
+                    case "MOMO":
+                        (bool createMomoLinkResult, string createMessage, string deepLink) = await _momoService.CreateMomoPayment(request, entity);
+                        if (createMomoLinkResult)
+                        {
+                            result.Payload = new CreateReservationResponse()
+                            {
+                                Id = entity.Id,
+                                PaymentUrl = createMessage,
+                                deeplink = deepLink
+                            };
+                        }
+                        else
+                        {
+                            throw new Exception(createMessage);
+                        }
+                        break;
+                    
+                    case "ZALOPAY":
+                        (bool createZaloPayLinkResult, string? createZaloPayMessage) = await _zaloPayService.CreateZaloPayment(request, entity);
+                        if (createZaloPayLinkResult)
+                        {
+                            result.Payload = new CreateReservationResponse()
+                            {
+                                Id = entity.Id,
+                                PaymentUrl = createZaloPayMessage,
+                                deeplink = null
+                            };
+                        }
+                        else
+                        {
+                            throw new Exception(createZaloPayMessage);
+                        }
+                        break;
                 }
-                else
-                {
-                    throw new Exception(createMessage);
-                }
-
+                
                 await transaction.CommitAsync();
                 
                 // goi Background Service Check status sau 5p

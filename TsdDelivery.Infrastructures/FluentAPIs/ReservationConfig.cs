@@ -11,6 +11,10 @@ public class ReservationConfig : IEntityTypeConfiguration<Reservation>
     {
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Code)
+            .ValueGeneratedOnAdd()
+            .UseIdentityColumn(seed: 1000);
+
         builder.OwnsOne(x => x.Goods)
             .Property(x => x.Length).HasColumnType("decimal(18,2)");
         

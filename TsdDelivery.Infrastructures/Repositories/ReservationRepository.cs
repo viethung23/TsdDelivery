@@ -17,6 +17,7 @@ public class ReservationRepository : GenericRepository<Reservation>,IReservation
     public async Task<Reservation> GetReservationDetail(Guid id)
     {
         var reservation = _dbSet.Where(x => x.Id == id)
+            .Include(x => x.User)
             .Include(x => x.Driver)
             .Include(x => x.reservationDetails)
             .ThenInclude(x => x.Service)

@@ -4,5 +4,5 @@ public class CreateReservationResponse
 {
     public Guid Id { get; set; }
     public string PaymentUrl { get; set; }
-    public string deeplink { get; set; }
+    public string? deeplink { get; set; }
 }

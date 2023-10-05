@@ -7,6 +7,7 @@ public class AppConfiguration
     public JwtSettings JwtSettings { get; set; }
     public FileService FileService { get; set; }
     public MomoConfig MomoConfig { get; set; }
+    public ZaloPayConfig ZaloPayConfig { get; set; }
     public Tomtom Tomtom { get; set; }
 }
 

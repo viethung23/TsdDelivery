@@ -10,9 +10,11 @@ namespace TsdDelivery.Api.Controllers;
 public class PaymentsController : BaseController
 {
     private readonly IMomoService _momoService;
-    public PaymentsController(IMomoService momoService)
+    private readonly IZaloPayService _zaloPayService;
+    public PaymentsController(IMomoService momoService,IZaloPayService zaloPayService)
     {
         _momoService = momoService;
+        _zaloPayService = zaloPayService;
     }
     
     /// <summary>
@@ -27,4 +29,12 @@ public class PaymentsController : BaseController
         var response = await _momoService.ProcessMomoPaymentReturn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    /*[HttpPost]
+    [Route("zalopay-callback")]
+    public async Task<IActionResult> ZaloPayCallback([FromBody] dynamic cbData)
+    {
+        var response = await _zaloPayService.ProcessZaloPayPaymentCallBack(cbData);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }*/
 }

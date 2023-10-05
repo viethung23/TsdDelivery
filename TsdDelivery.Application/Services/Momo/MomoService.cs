@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Models.Reservation.Request;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Services.Momo.Request;
 using TsdDelivery.Domain.Entities;
@@ -102,5 +103,19 @@ public class MomoService : IMomoService
             _unitOfWork.Dispose();
         }
         return result;
+    }
+
+    public async Task<(bool, string?, string?)> CreateMomoPayment(CreateReservationRequest request, Reservation entity)
+    {
+        var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_configuration.MomoConfig.PartnerCode,
+            DateTime.Now.Ticks.ToString() + entity.Id ?? string.Empty, (long)request.TotalPrice!,
+            entity.Id!.ToString() ?? string.Empty,
+            "Thanh toán đặt xe TSD" ?? string.Empty, _configuration.MomoConfig.ReturnUrl,
+            _configuration.MomoConfig.IpnUrl, "captureWallet",
+            string.Empty);
+        momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey,
+            _configuration.MomoConfig.SecretKey);
+         
+        return momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
     }
 }
