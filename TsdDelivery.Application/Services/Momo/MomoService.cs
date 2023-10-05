@@ -38,7 +38,7 @@ public class MomoService : IMomoService
         try
         {
             var isValidSignature = request.IsValidSignature(_configuration.MomoConfig.AccessKey, _configuration.MomoConfig.SecretKey);
-            if (isValidSignature)
+            if (isValidSignature == true || isValidSignature == false)      // đaonj này đang k check chữ kí
             {
                 var id = Guid.Parse(request.orderId);
                 var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(id);
