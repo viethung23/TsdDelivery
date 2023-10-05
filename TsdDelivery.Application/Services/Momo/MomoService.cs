@@ -45,7 +45,7 @@ public class MomoService : IMomoService
                 if (request.resultCode == 0)
                 {
                     reservation.ReservationStatus = ReservationStatus.AwaitingDriver;
-                    await _unitOfWork.ReservationRepository.Update(reservation);
+                    //await _unitOfWork.ReservationRepository.Update(reservation);     /// ddang 
                     var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
                     if (!isSuccess)
                     {
@@ -116,6 +116,6 @@ public class MomoService : IMomoService
         momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey,
             _configuration.MomoConfig.SecretKey);
          
-        return momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
+        return await momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
     }
 }

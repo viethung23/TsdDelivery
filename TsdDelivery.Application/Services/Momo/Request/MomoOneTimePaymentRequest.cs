@@ -53,7 +53,7 @@ public class MomoOneTimePaymentRequest
         this.signature = HashHelper.HmacSHA256(rawHash, secretKey);
     }
     
-    public (bool, string?, string?) GetLink(string paymentUrl)
+    public async Task<(bool, string?, string?)> GetLink(string paymentUrl)
     {
         using HttpClient client = new HttpClient();
         var requestData = JsonConvert.SerializeObject(this, new JsonSerializerSettings()
