@@ -24,6 +24,7 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.VehicleType,src => src.reservationDetails.Select(x => x.Service.VehicleType.VehicleTypeName).FirstOrDefault());
         
         config.NewConfig<Reservation, ReservationHistoryResponse>()
+            .Map(dest => dest.GoodsName, src => src.Goods.Name)
             .Map(dest => dest.VehicleType,src => src.reservationDetails.Select(x => x.Service.VehicleType.VehicleTypeName).FirstOrDefault());
 
         config.NewConfig<Reservation, ReservationHistoryDetailResponse>()
