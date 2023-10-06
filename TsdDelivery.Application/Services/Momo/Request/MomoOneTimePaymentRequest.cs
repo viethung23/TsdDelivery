@@ -18,7 +18,7 @@ public class MomoOneTimePaymentRequest
     public string requestType { get; set; } = string.Empty;
     public string extraData { get; set; } = string.Empty;
     public string lang { get; set; } = string.Empty;
-    public string partnerName { get; set; } = String.Empty;
+    public string partnerName { get; set; } = string.Empty;
     public string signature { get; set; } = string.Empty;
 
     public MomoOneTimePaymentRequest(string partnerCode, string requestId,

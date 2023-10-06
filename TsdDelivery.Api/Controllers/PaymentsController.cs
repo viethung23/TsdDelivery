@@ -1,4 +1,6 @@
+using System.Net;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services.Momo.Request;
@@ -27,14 +29,16 @@ public class PaymentsController : BaseController
     public async Task<IActionResult> MomoReturn([FromQuery]MomoOneTimePaymentResultRequest request)
     {
         var response = await _momoService.ProcessMomoPaymentReturn(request);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Redirect("http://localhost:3000/order-success");
     }
 
-    /*[HttpPost]
-    [Route("zalopay-callback")]
-    public async Task<IActionResult> ZaloPayCallback([FromBody] dynamic cbData)
+    [HttpPost]
+    [Route("momo-ipn")]
+    [Produces("application/json")]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    public async Task<IActionResult> MomoIpn(MomoOneTimePaymentResultRequest request)
     {
-        var response = await _zaloPayService.ProcessZaloPayPaymentCallBack(cbData);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }*/
+        //var response = await _momoService.ProcessMomoPaymentReturn(request);
+        return StatusCode(204);
+    }
 }
