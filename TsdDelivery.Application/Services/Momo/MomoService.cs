@@ -1,4 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
 using Hangfire;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
@@ -16,12 +18,14 @@ public class MomoService : IMomoService
     private readonly IUnitOfWork _unitOfWork;
     private readonly AppConfiguration _configuration;
     private readonly IHangFireRepository _hangFireRepository;
+    private readonly ICurrentTime _currentTime;
     private static MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
-    public MomoService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration,IHangFireRepository hangFireRepository)
+    public MomoService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration,IHangFireRepository hangFireRepository,ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _configuration = appConfiguration;
         _hangFireRepository = hangFireRepository;
+        _currentTime = currentTime;
     }
     
     public async Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest request)
@@ -79,10 +83,11 @@ public class MomoService : IMomoService
                     // goi Background Service Check status va refund sau 5p
                     var timeToCancel = DateTime.UtcNow.AddMinutes(5);
                     BackgroundJob.Schedule<IBackgroundService>(
-                        x => x.AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver(request.orderId!,request.transId!), timeToCancel);
+                        x => x.AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver(request.orderId!,request.transId!.ToString()), timeToCancel);
                     // delete job chờ thanh toán 
                     // ở đây gọi HangfireRepository để delete cái job check over allow payment time 
-                    //await _hangFireRepository.DeleteJob(id,methodName);
+                    await _hangFireRepository.DeleteJob(id,methodName);
+                    
                 }
                 else
                 {
@@ -108,10 +113,9 @@ public class MomoService : IMomoService
     public async Task<(bool, string?, string?)> CreateMomoPayment(CreateReservationRequest request, Reservation entity)
     {
         var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_configuration.MomoConfig.PartnerCode,
-            DateTime.Now.Ticks.ToString() + entity.Id ?? string.Empty, (long)request.TotalPrice!,
+            _currentTime.GetCurrentTime().Ticks.ToString() + entity.Code+"tsd" ?? string.Empty, (long)request.TotalPrice!,
             entity.Id!.ToString() ?? string.Empty,
-            "Thanh toán đặt xe TSD" ?? string.Empty, _configuration.MomoConfig.ReturnUrl,
-            _configuration.MomoConfig.IpnUrl, "captureWallet",
+            "Thanh toán đặt xe TSD" ?? string.Empty, _configuration.MomoConfig.ReturnUrl,_configuration.MomoConfig.IpnUrl, "captureWallet",
             string.Empty);
         momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey,
             _configuration.MomoConfig.SecretKey);

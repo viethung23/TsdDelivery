@@ -9,6 +9,7 @@ using TsdDelivery.Application;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore.Storage;
 using StackExchange.Redis;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Services.Momo;
@@ -50,18 +51,19 @@ public static class DependencyInjection
         services.AddScoped<IMapper, ServiceMapper>();
         
         // register hangfire sqlserver 
-        /*services.AddHangfire(hangfire =>
+        services.AddHangfire(hangfire =>
         {
             hangfire.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
             hangfire.UseSimpleAssemblyNameTypeSerializer();
             hangfire.UseRecommendedSerializerSettings();
             hangfire.UseColouredConsoleLogProvider();
             hangfire.UseSqlServerStorage(databaseConnection);
-        });*/
-        services.AddHangfire(x =>
+        });
+        // hangfire redis
+        /*services.AddHangfire(x =>
         {
             x.UseRedisStorage(redisConnection); 
-        });
+        });*/
         
         
         services.AddHangfireServer();

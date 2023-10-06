@@ -207,6 +207,7 @@ public class ReservationService : IReservationService
             var reservations =
                 await _unitOfWork.ReservationRepository.GetMulti(x =>
                     x.ReservationStatus == ReservationStatus.AwaitingDriver && x.IsNow == isNow);
+             reservations = reservations.OrderByDescending(x => x.CreationDate).ToList();
             var list = new List<ReservationAwaitingDriverResponse>();
             foreach (var x in reservations)
             {
@@ -340,7 +341,6 @@ public class ReservationService : IReservationService
         {
             _unitOfWork.Dispose();
         }
-
         return result;
     }
 

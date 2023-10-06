@@ -16,14 +16,17 @@ public class UserService : IUserService
     private readonly ICurrentTime _currentTime;
     private readonly IBlobStorageAzureService _blobStorageAzureService;
     private readonly AppConfiguration _appConfiguration;
+    private readonly IClaimsService _claimsService;
+    
     public UserService(IUnitOfWork unitOfWork, ICurrentTime currentTime
         ,IBlobStorageAzureService blobStorageAzureService
-        ,AppConfiguration appConfiguration)
+        ,AppConfiguration appConfiguration,IClaimsService claimsService)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
         _blobStorageAzureService = blobStorageAzureService;
         _appConfiguration = appConfiguration;
+        _claimsService = claimsService;
     }
 
     public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
@@ -155,8 +158,8 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.IncorrectPassword, "IncorrectPassword");
                 return result;
             }
-
-            string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime());
+            
+            string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime(),_claimsService.Host);
 
             var userLoginResponse = new UserLoginResponse()
             {

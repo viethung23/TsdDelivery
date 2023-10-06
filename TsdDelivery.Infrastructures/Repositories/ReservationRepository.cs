@@ -29,6 +29,7 @@ public class ReservationRepository : GenericRepository<Reservation>,IReservation
     public Task<List<Reservation>> GetReservationHistoryForUser(Guid userId)
     {
         var reservation = _dbSet.Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreationDate)
             .Include(x => x.reservationDetails)
             .ThenInclude(x => x.Service)
             .ThenInclude(x => x.VehicleType).ToListAsync();
