@@ -55,8 +55,11 @@ public class ReservationController : BaseController
     [HttpGet]
     [ValidateModel]
     [Authorize(Policy = "RequireDriverRole")]
-    public async Task<IActionResult> GetAwaitingDriverReservation([FromQuery] CurrentCoordinates? currentCoordinates,[FromQuery] DestinationCoordinates? destinationCoordinates,bool isNow = true)
+    public async Task<IActionResult> GetAwaitingDriverReservation(double Latitude = 0.0D, double  Longitude = 0.0D,double LatitudeDes = 0.0D, double LongitudeDes = 0.0D ,bool isNow = true)
     {
+        var currentCoordinates = new CurrentCoordinates() { Latitude = Latitude, Longitude = Longitude };
+        var destinationCoordinates = new DestinationCoordinates()
+            { LatitudeDes = LatitudeDes, LongitudeDes = LongitudeDes };
         var response = await _reservationService.GetAwaitingDriverReservation(currentCoordinates,destinationCoordinates,isNow);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
@@ -71,8 +74,11 @@ public class ReservationController : BaseController
     [ValidateModel]
     [ValidateGuid]
     [Authorize(Policy = "RequireDriverRole")]
-    public async Task<IActionResult> GetAwaitingDriverReservationDetail(Guid reservationId,[FromQuery]CurrentCoordinates? currentCoordinates,[FromQuery] DestinationCoordinates? destinationCoordinates)
+    public async Task<IActionResult> GetAwaitingDriverReservationDetail(Guid reservationId,double Latitude = 0.0D, double  Longitude = 0.0D,double LatitudeDes = 0.0D, double LongitudeDes = 0.0D)
     {
+        var currentCoordinates = new CurrentCoordinates() { Latitude = Latitude, Longitude = Longitude };
+        var destinationCoordinates = new DestinationCoordinates()
+            { LatitudeDes = LatitudeDes, LongitudeDes = LongitudeDes };
         var response = await _reservationService.GetAwaitingDriverReservationDetail(reservationId,currentCoordinates,destinationCoordinates);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }

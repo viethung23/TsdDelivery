@@ -20,7 +20,7 @@ public class UserController : BaseController
     ///  Api for Admin
     /// </summary>
     [HttpGet]
-    [Authorize]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> GetAllUsers()
     {
         var response = await _userService.GetAllUsers();
@@ -70,5 +70,18 @@ public class UserController : BaseController
     {
         var response = await _userService.GetUserById(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [Authorize(Policy = "RequireAdminRole")]
+    public async Task<IActionResult> DisableUser(Guid userId)
+    {
+        var response = await _userService.DisableUser(userId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok($"Disable Success User with id = {userId}");
     }
 }

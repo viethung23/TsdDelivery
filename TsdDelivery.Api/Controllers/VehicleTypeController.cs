@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Models.VehicleType.Request;
 using TsdDelivery.Application.Interface;
@@ -18,6 +19,7 @@ public class VehicleTypeController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> GetAllVehicleType()
     {
         var response = await _vehicleTypeService.GetAllVehicleType();
@@ -33,6 +35,7 @@ public class VehicleTypeController : BaseController
     /// <returns></returns>
     [HttpPost]
     [ValidateModel]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> CreateVehicleType(IFormFile? blob,  string name, string? description)    
     {
         var request = new CreateVehicleType { VehicleTypeName = name,Description = description };

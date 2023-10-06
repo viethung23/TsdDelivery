@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
@@ -31,6 +32,7 @@ public class RoleController : BaseController
     /// <returns></returns>
     [HttpPost]
     [ValidateModel]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> CreateRole(RoleCreateUpdate request)
     {
         var response = await _roleService.CreateRole(request);

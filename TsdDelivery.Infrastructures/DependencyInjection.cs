@@ -65,6 +65,11 @@ public static class DependencyInjection
             x.UseRedisStorage(redisConnection); 
         });*/
         
+        //add redis cache
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection; 
+        });
         
         services.AddHangfireServer();
         services.AddTransient<IBackgroundService, BackgroundService>();

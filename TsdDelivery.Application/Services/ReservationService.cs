@@ -234,7 +234,7 @@ public class ReservationService : IReservationService
                     }
                     else
                     {
-                        dis = await GetDistanseKm(currentCoordinates.Latitude!.Value, currentCoordinates.Longitude!.Value, x.latitudeSendLocation,
+                        dis = await GetDistanseKm(currentCoordinates.Latitude, currentCoordinates.Longitude, x.latitudeSendLocation,
                             x.longitudeSendLocation);
                         if (dis! <= 10)        // if distance between driver and reservation < 10km
                         {
@@ -319,7 +319,7 @@ public class ReservationService : IReservationService
                 }
                 else
                 {
-                    dis = await GetDistanseKm(currentCoordinates.Latitude!.Value, currentCoordinates.Longitude!.Value, reservation.latitudeSendLocation,
+                    dis = await GetDistanseKm(currentCoordinates.Latitude!, currentCoordinates.Longitude!, reservation.latitudeSendLocation,
                         reservation.longitudeSendLocation);
                     if (dis! <= 10)        // if distance between driver and reservation < 10km
                     {
@@ -502,11 +502,19 @@ public class ReservationService : IReservationService
 
     private bool CheckCurrentCoordinatesHasValue(CurrentCoordinates currentCoordinates)
     {
-        return currentCoordinates!.Longitude.HasValue && currentCoordinates!.Latitude.HasValue;
+        if (currentCoordinates.Longitude == 0.0D || currentCoordinates.Latitude == 0.0D)
+        {
+            return false;
+        }
+        return true;
     }
     private bool CheckDestinationCoordinatesHasValue(DestinationCoordinates destinationCoordinates)
     {
-        return destinationCoordinates!.LongitudeDes.HasValue && destinationCoordinates!.LatitudeDes.HasValue;
+        if (destinationCoordinates.LatitudeDes == 0.0D || destinationCoordinates.LongitudeDes == 0.0D)
+        {
+            return false;
+        }
+        return true;
     }
 
     private string CatChuoi(string s)

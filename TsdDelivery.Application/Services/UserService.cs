@@ -153,6 +153,11 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.IdentityUserDoesNotExist, string.Format("The Phone number [{0}] not exit With role [{1}]", query.PhoneNumber,role.RoleName));
                 return result;
             }
+            if (user.IsDeleted == true)
+            {
+                result.AddError(ErrorCode.ServerError, "Your account has been disabled");
+                return result;
+            }
             if (user.PasswordHash != query.Password)
             {
                 result.AddError(ErrorCode.IncorrectPassword, "IncorrectPassword");
@@ -276,6 +281,30 @@ public class UserService : IUserService
             };
 
             result.Payload = userResponse;
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserResponse>> DisableUser(Guid userId)
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            user!.IsDeleted = true;
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (!isSuccess)
+            {
+                result.AddError(ErrorCode.ServerError, $"Can not disable User with id: {userId}");
+            }
         }
         catch (Exception ex)
         {
