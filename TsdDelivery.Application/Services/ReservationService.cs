@@ -502,7 +502,7 @@ public class ReservationService : IReservationService
 
     private bool CheckCurrentCoordinatesHasValue(CurrentCoordinates currentCoordinates)
     {
-        if (currentCoordinates.Longitude == 0.0D && currentCoordinates.Latitude == 0.0D)
+        if (currentCoordinates.Longitude == 0.0D || currentCoordinates.Latitude == 0.0D)
         {
             return false;
         }
@@ -510,7 +510,7 @@ public class ReservationService : IReservationService
     }
     private bool CheckDestinationCoordinatesHasValue(DestinationCoordinates destinationCoordinates)
     {
-        if (destinationCoordinates.LatitudeDes == 0.0D && destinationCoordinates.LongitudeDes == 0.0D)
+        if (destinationCoordinates.LatitudeDes == 0.0D || destinationCoordinates.LongitudeDes == 0.0D)
         {
             return false;
         }
