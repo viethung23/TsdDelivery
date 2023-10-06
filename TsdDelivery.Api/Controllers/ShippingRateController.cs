@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
@@ -18,6 +19,7 @@ public class ShippingRateController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> GetAllShippingRate()
     {
         var response = await _shippingRateService.GetAllShippingRate();
@@ -35,6 +37,7 @@ public class ShippingRateController : BaseController
     /// <returns></returns>
     [HttpPost]
     [ValidateModel]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> CreateShippingRate(CreateShippingRateRequest request)
     {
         var response = await _shippingRateService.CreateShippingRate(request);
@@ -48,6 +51,7 @@ public class ShippingRateController : BaseController
     /// <param name="serviceId"></param>
     /// <returns></returns>
     [HttpDelete]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> DeleteShippingRate(Guid shippingRateId,Guid serviceId)
     {
         var response = await _shippingRateService.DeleteShippingRate(shippingRateId, serviceId);

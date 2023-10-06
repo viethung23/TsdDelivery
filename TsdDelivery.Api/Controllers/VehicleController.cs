@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
@@ -19,6 +20,7 @@ public class VehicleController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> GetAllVehicle()
     {
         var response = await _vehicleService.GetAllVehicle();
@@ -47,6 +49,7 @@ public class VehicleController : BaseController
     /// <returns></returns>
     [HttpDelete]
     [ValidateGuid("id")]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> DeleteVehicle(Guid id)
     {
         var response = await _vehicleService.DeleteVehicle(id);
