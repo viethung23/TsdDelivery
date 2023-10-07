@@ -153,6 +153,10 @@ public class ReservationService : IReservationService
                             throw new Exception(createZaloPayMessage);
                         }
                         break;
+                    
+                    case "VNPAY":
+                        
+                        break;
                 }
                 
                 await transaction.CommitAsync();
@@ -176,13 +180,14 @@ public class ReservationService : IReservationService
         }
     }
 
-    public async Task<OperationResult<List<ReservationResponse>>> GetAllReservation()
+    public async Task<OperationResult<List<ReservationsResponse>>> GetAllReservation()
     {
-        var result = new OperationResult<List<ReservationResponse>>();
+        var result = new OperationResult<List<ReservationsResponse>>();
         try
         {
-            var reservations = await _unitOfWork.ReservationRepository.GetAllAsync();
-            var list = _mapper.Map<List<ReservationResponse>>(reservations);
+            var include = new[] {"User"};
+            var reservations = await _unitOfWork.ReservationRepository.GetAllAsync(include);
+            var list = _mapper.Map<List<ReservationsResponse>>(reservations);
             result.Payload = list;
         }
         catch (Exception e)
@@ -417,14 +422,20 @@ public class ReservationService : IReservationService
         var result = new OperationResult<ReservationHistoryDetailResponse>();
         try
         {
-            var loggedInUserId = _claimsService.GetCurrentUserId;
             var reHistoryDetail = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
-            if (!loggedInUserId.Equals(reHistoryDetail.UserId))
+            if (_claimsService.Role.Equals("ADMIN"))
             {
-                result.AddError(ErrorCode.ServerError,"This reservation does not belong to you.");
-                return result;
+                result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);
             }
-            result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);
+            else
+            {
+                if (!_claimsService.GetCurrentUserId.Equals(reHistoryDetail.UserId))
+                {
+                    result.AddError(ErrorCode.ServerError,"This reservation does not belong to you.");
+                    return result;
+                }
+                result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);
+            }
         }
         catch (Exception e)
         {

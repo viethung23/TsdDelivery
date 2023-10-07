@@ -55,4 +55,17 @@ public class VehicleController : BaseController
         var response = await _vehicleService.DeleteVehicle(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Delete Success");
     }
+
+    /// <summary>
+    /// Api for Driver and Admin
+    /// </summary>
+    /// <param name="idDriver"></param>
+    /// <returns></returns>
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> GetVehicleByIdDriver(Guid idDriver)
+    {
+        var response = await _vehicleService.GetVehicleByIdDriver(idDriver);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

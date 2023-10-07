@@ -42,6 +42,7 @@ public class ReservationController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> GetAllReservation()
     {
         var response = await _reservationService.GetAllReservation();
@@ -109,13 +110,13 @@ public class ReservationController : BaseController
     }
     
     /// <summary>
-    /// Api for Customer 
+    /// Api for Customer , Admin
     /// </summary>
     /// <param name="reservationId"></param>
     /// <returns></returns>
     [HttpGet]
     [ValidateGuid]
-    [Authorize(Policy = "RequireUserRole")]
+    [Authorize(Policy = "AdminOrUser")]
     public async Task<IActionResult> GetReservationHistoryDetailForUser(Guid reservationId)
     {
         var response = await _reservationService.GetReservationHistoryDetailForUser(reservationId);

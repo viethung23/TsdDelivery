@@ -90,6 +90,7 @@ public static class DependencyInjection
             opt.AddPolicy("RequireDriverRole", policy => policy.RequireRole("DRIVER"));
             opt.AddPolicy("RequireUserRole", policy => policy.RequireRole("USER"));
             opt.AddPolicy("RequireAdminRole", policy => policy.RequireRole("ADMIN"));
+            opt.AddPolicy("AdminOrUser", policy => policy.RequireRole("ADMIN", "USER"));
         });
         
         //------------------------------------------------------------------------

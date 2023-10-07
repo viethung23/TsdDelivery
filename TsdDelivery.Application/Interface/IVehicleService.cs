@@ -10,4 +10,5 @@ public interface IVehicleService
     public Task<OperationResult<List<VehicleResponse>>> GetAllVehicle();
     public Task<OperationResult<VehicleResponse>> CreateVehicle(CreateVehicle request, IFormFile blob = null);
     public Task<OperationResult<VehicleResponse>> DeleteVehicle(Guid id);
+    public Task<OperationResult<VehicleResponse>> GetVehicleByIdDriver(Guid IdDriver);
 }

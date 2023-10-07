@@ -1,3 +1,4 @@
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
@@ -11,10 +12,12 @@ public class VehicleService : IVehicleService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IBlobStorageAzureService _blobStorageAzureService;
-    public VehicleService(IUnitOfWork unitOfWork, IBlobStorageAzureService lobStorageAzureService)
+    private readonly IMapper _mapper;
+    public VehicleService(IUnitOfWork unitOfWork, IBlobStorageAzureService lobStorageAzureService,IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _blobStorageAzureService = lobStorageAzureService;
+        _mapper = mapper;
     }
     public async Task<OperationResult<VehicleResponse>> CreateVehicle(CreateVehicle request, IFormFile blob = null)
     {
@@ -75,6 +78,26 @@ public class VehicleService : IVehicleService
             await _unitOfWork.VehicleRepository.Delete(vehicle);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess) throw new Exception();
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<VehicleResponse>> GetVehicleByIdDriver(Guid idDriver)
+    {
+        var result = new OperationResult<VehicleResponse>();
+        try
+        {
+            var vehicle = await _unitOfWork.VehicleRepository.GetSingleByCondition(x => x.UserId == idDriver);
+            result.Payload = _mapper.Map<VehicleResponse>(vehicle);
         }
         catch (Exception e)
         {

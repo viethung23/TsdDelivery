@@ -1,3 +1,4 @@
+using System.Reflection.PortableExecutable;
 using Mapster;
 using TsdDelivery.Application.Models.Reservation.Response;
 using TsdDelivery.Application.Models.Service.Response;
@@ -31,6 +32,10 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.sender, src => src.User.FullName)
             .Map(dest => dest.GoodsDto, src => src.Goods)
             .Map(dest => dest.DriverDto, src => src.Driver);
+
+        config.NewConfig<Reservation, ReservationsResponse>()
+            .Map(dest => dest.GoodsDto, src => src.Goods)
+            .Map(dest => dest.SenderDto, src => src.User);
         //config.NewConfig<Service, ServiceResponse>();
     }
 }
