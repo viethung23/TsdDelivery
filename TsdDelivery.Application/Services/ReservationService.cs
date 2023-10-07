@@ -422,14 +422,29 @@ public class ReservationService : IReservationService
         var result = new OperationResult<ReservationHistoryDetailResponse>();
         try
         {
-            var loggedInUserId = _claimsService.GetCurrentUserId;
+            /*var loggedInUserId = _claimsService.GetCurrentUserId;
+            var role = _claimsService.Role;
             var reHistoryDetail = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
-            if (!loggedInUserId.Equals(reHistoryDetail.UserId))
+            if (!loggedInUserId.Equals(reHistoryDetail.UserId) || !role.Equals("ADMIN"))
             {
                 result.AddError(ErrorCode.ServerError,"This reservation does not belong to you.");
                 return result;
             }
-            result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);
+            result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);*/
+            var reHistoryDetail = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
+            if (_claimsService.Role.Equals("ADMIN"))
+            {
+                result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);
+            }
+            else
+            {
+                if (!_claimsService.GetCurrentUserId.Equals(reHistoryDetail.UserId))
+                {
+                    result.AddError(ErrorCode.ServerError,"This reservation does not belong to you.");
+                    return result;
+                }
+                result.Payload = _mapper.Map<ReservationHistoryDetailResponse>(reHistoryDetail);
+            }
         }
         catch (Exception e)
         {

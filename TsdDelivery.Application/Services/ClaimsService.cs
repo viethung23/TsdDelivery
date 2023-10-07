@@ -13,9 +13,11 @@ public class ClaimsService : IClaimsService
         GetCurrentUserId = string.IsNullOrEmpty(Id) ? Guid.Empty : Guid.Parse(Id);
         Host = httpContextAccessor.HttpContext?.Request!.Host!.ToString()!;
         IpAddress = httpContextAccessor.HttpContext!.Connection!.LocalIpAddress!.ToString();
+        Role = httpContextAccessor.HttpContext?.User!.FindFirstValue(ClaimTypes.Role)!;
     }
 
     public Guid GetCurrentUserId { get; }
     public string Host { get; }
     public string IpAddress { get; }
+    public string Role { get; }
 }
