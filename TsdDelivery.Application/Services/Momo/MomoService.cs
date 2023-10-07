@@ -69,7 +69,8 @@ public class MomoService : IMomoService
                         PaymentMethod = "Thanh-toan-online",
                         Description = "Nhận tiền thanh toán từ đơn đặt có Mã: " + reservation.Id,
                         WalletId = admin.Wallet!.Id,
-                        ReservationId = reservation.Id
+                        ReservationId = reservation.Id,
+                        TransactionType = TransactionType.Plus
                     };
                     // TO DO HERE
                     await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);

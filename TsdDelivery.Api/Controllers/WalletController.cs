@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Application.Interface;
 
@@ -13,6 +14,7 @@ public class WalletController : BaseController
 
     
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetWalletById(Guid id)
     {
         var response = await _walletService.GetWalletById(id);
@@ -20,6 +22,7 @@ public class WalletController : BaseController
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetWalletByUserId(Guid userId)
     {
         var response = await _walletService.GetWalletByUserId(userId);
