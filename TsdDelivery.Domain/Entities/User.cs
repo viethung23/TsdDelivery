@@ -1,4 +1,6 @@
-﻿namespace TsdDelivery.Domain.Entities;
+﻿using TsdDelivery.Domain.Entities.Enums;
+
+namespace TsdDelivery.Domain.Entities;
 
 public class User : BaseEntity
 {
@@ -7,6 +9,7 @@ public class User : BaseEntity
     public string PasswordHash { get; set; }
     public string PhoneNumber { get; set; }
     public string? AvatarUrl { get;set; }
+    public DriverStatus? DriverStatus { get; set; }
 
     public Guid? RoleId { get; set; }
     public Role? Role { get; set; }

@@ -361,7 +361,12 @@ public class ReservationService : IReservationService
                 result.AddError(ErrorCode.ServerError,"The driverID does not match the account used to login");
                 return result;
             }
-            var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservationId);
+            if (driver!.DriverStatus == DriverStatus.Busy)
+            {
+                result.AddError(ErrorCode.ServerError,"You cannot accept this order because you are currently delivering another order.");
+                return result;
+            }
+            var reservation = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
             if (!reservation!.ReservationStatus.Equals(ReservationStatus.AwaitingDriver))
             {
                 switch (reservation.ReservationStatus)
@@ -381,6 +386,9 @@ public class ReservationService : IReservationService
                 }
                 return result;
             }
+            // check them tai xe nay co dung cai loai xe no yeu cau khong
+            
+            
             reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
             reservation.Driver = driver;
             await _unitOfWork.SaveChangeAsync();

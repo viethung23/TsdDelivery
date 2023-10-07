@@ -7,6 +7,7 @@ using TsdDelivery.Application.Models.User.Request;
 using TsdDelivery.Application.Models.User.Response;
 using TsdDelivery.Application.Utils;
 using TsdDelivery.Domain.Entities;
+using TsdDelivery.Domain.Entities.Enums;
 
 namespace TsdDelivery.Application.Services;
 
@@ -105,7 +106,10 @@ public class UserService : IUserService
                     entity.PasswordHash = command.Password;
                     entity.Role = role;
                 }
-            
+                if (role!.RoleName.ToUpper() == "DRIVER")
+                {
+                    entity.DriverStatus = DriverStatus.Available;
+                }            
                 var u = await _unitOfWork.UserRepository.AddAsync(entity);
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
                 if (!isSuccess)

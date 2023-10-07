@@ -15,11 +15,11 @@ public class VehicleTypeController : BaseController
     }
 
     /// <summary>
-    /// Api for Admin
+    /// Api for Admin,User
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Authorize(Policy = "RequireAdminRole")]
+    [Authorize(Policy = "AdminOrUser")]
     public async Task<IActionResult> GetAllVehicleType()
     {
         var response = await _vehicleTypeService.GetAllVehicleType();
