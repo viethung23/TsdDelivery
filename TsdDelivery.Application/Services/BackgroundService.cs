@@ -70,7 +70,8 @@ public class BackgroundService : IBackgroundService
                         PaymentMethod = "Thanh-toan-online",
                         Description = "Hoàn tiền từ đơn đặt có Mã: " + reservation.Id + " . Vì lý do quá thời gian chờ tài xế",
                         WalletId = admin.Wallet!.Id,
-                        ReservationId = reservation.Id
+                        ReservationId = reservation.Id,
+                        TransactionType = TransactionType.Minus
                     };
                     await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
                     await _unitOfWork.SaveChangeAsync();

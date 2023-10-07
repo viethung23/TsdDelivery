@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Application.Interface;
 
@@ -12,6 +13,7 @@ public class TransactionController : BaseController
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetAllTransactionsByUserId(Guid userId)
     {
         var response = await _transactionService.GetTransactionByUserId(userId);
