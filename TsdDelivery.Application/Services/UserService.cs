@@ -324,7 +324,7 @@ public class UserService : IUserService
         try
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            if (user.IsDeleted)
+            if (user.IsDeleted == false)
             {
                 result.AddError(ErrorCode.ServerError,"This user is in active state");
                 return result;
