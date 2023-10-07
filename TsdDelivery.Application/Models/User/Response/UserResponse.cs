@@ -22,5 +22,6 @@ public record UserResponse
     public Guid? CreatedBy { get; set; }
     public DateTime? ModificationDate { get; set; }
     public string? RoleName { get; set; }
+    public bool? IsDelete { get; set; }
 
 }

@@ -15,4 +15,5 @@ public interface IUserService
     public Task<OperationResult<UserResponse>> UploadImage(Guid id,IFormFile blob);
     public Task<OperationResult<UserResponse>> GetUserById(Guid id);
     public Task<OperationResult<UserResponse>> DisableUser(Guid userId);
+    public Task<OperationResult<UserResponse>> ActiveUser(Guid userId);
 }

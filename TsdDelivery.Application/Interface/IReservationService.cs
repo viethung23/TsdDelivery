@@ -9,7 +9,7 @@ public interface IReservationService
 {
     public Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request);
     public Task<OperationResult<CreateReservationResponse>> CreateReservation(CreateReservationRequest request);
-    public Task<OperationResult<List<ReservationResponse>>> GetAllReservation();
+    public Task<OperationResult<List<ReservationsResponse>>> GetAllReservation();
     public Task<OperationResult<List<ReservationAwaitingDriverResponse>>> GetAwaitingDriverReservation(CurrentCoordinates currentCoordinates,DestinationCoordinates destinationCoordinates,bool isNow);
     public Task<OperationResult<ReservationAwaitingDriverDetailResponse>> GetAwaitingDriverReservationDetail(Guid reservationId,CurrentCoordinates currentCoordinates,DestinationCoordinates destinationCoordinates);
     public Task<OperationResult<ReservationResponse>> AcceptReservation(Guid driverId, Guid reservationId);

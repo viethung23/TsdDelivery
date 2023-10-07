@@ -53,8 +53,8 @@ public class UserService : IUserService
                     FullName = user.FullName,
                     ModificationDate = user.ModificationDate,
                     PhoneNumber = user.PhoneNumber,
-                    RoleName = user.Role.RoleName
-                    
+                    RoleName = user.Role.RoleName,
+                    IsDelete = user.IsDeleted
                 };
                 listUserResponse.Add(userResponse);
             }
@@ -277,7 +277,8 @@ public class UserService : IUserService
                 Id = user.Id,
                 ModificationDate = user.ModificationDate,
                 PhoneNumber = user.PhoneNumber,
-                RoleName = ""                       //user.Role == null ? user.Role.RoleName : ""
+                RoleName = "",                    //user.Role == null ? user.Role.RoleName : ""
+                IsDelete = user.IsDeleted
             };
 
             result.Payload = userResponse;
@@ -304,6 +305,35 @@ public class UserService : IUserService
             if (!isSuccess)
             {
                 result.AddError(ErrorCode.ServerError, $"Can not disable User with id: {userId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserResponse>> ActiveUser(Guid userId)
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (user.IsDeleted)
+            {
+                result.AddError(ErrorCode.ServerError,"This user is in active state");
+                return result;
+            }
+            user!.IsDeleted = false;
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (!isSuccess)
+            {
+                result.AddError(ErrorCode.ServerError, $"Can not Active User with id: {userId}");
             }
         }
         catch (Exception ex)

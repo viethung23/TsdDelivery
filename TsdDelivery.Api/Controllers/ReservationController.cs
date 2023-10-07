@@ -42,6 +42,7 @@ public class ReservationController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(Policy = "RequireAdminRole")]
     public async Task<IActionResult> GetAllReservation()
     {
         var response = await _reservationService.GetAllReservation();

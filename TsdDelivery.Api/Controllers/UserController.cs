@@ -84,4 +84,17 @@ public class UserController : BaseController
         var response = await _userService.DisableUser(userId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok($"Disable Success User with id = {userId}");
     }
+    
+    /// <summary>
+    /// Api for Admin
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [Authorize(Policy = "RequireAdminRole")]
+    public async Task<IActionResult> ActiveUser(Guid userId)
+    {
+        var response = await _userService.ActiveUser(userId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok($"Active Success User with id = {userId}");
+    }
 }

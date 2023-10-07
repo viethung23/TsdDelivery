@@ -153,6 +153,10 @@ public class ReservationService : IReservationService
                             throw new Exception(createZaloPayMessage);
                         }
                         break;
+                    
+                    case "VNPAY":
+                        
+                        break;
                 }
                 
                 await transaction.CommitAsync();
@@ -176,13 +180,14 @@ public class ReservationService : IReservationService
         }
     }
 
-    public async Task<OperationResult<List<ReservationResponse>>> GetAllReservation()
+    public async Task<OperationResult<List<ReservationsResponse>>> GetAllReservation()
     {
-        var result = new OperationResult<List<ReservationResponse>>();
+        var result = new OperationResult<List<ReservationsResponse>>();
         try
         {
-            var reservations = await _unitOfWork.ReservationRepository.GetAllAsync();
-            var list = _mapper.Map<List<ReservationResponse>>(reservations);
+            var include = new[] {"User"};
+            var reservations = await _unitOfWork.ReservationRepository.GetAllAsync(include);
+            var list = _mapper.Map<List<ReservationsResponse>>(reservations);
             result.Payload = list;
         }
         catch (Exception e)
