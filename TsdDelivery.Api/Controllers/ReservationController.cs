@@ -94,7 +94,7 @@ public class ReservationController : BaseController
     public async Task<IActionResult> AcceptReservation(Guid driverId,Guid reservationId)
     {
         var response = await _reservationService.AcceptReservation(driverId, reservationId);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Success!");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     /// <summary>

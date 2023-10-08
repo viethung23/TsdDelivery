@@ -96,7 +96,8 @@ public class VehicleService : IVehicleService
         var result = new OperationResult<VehicleResponse>();
         try
         {
-            var vehicle = await _unitOfWork.VehicleRepository.GetSingleByCondition(x => x.UserId == idDriver);
+            var include = new[] { "VehicleType" };
+            var vehicle = await _unitOfWork.VehicleRepository.GetSingleByCondition(x => x.UserId == idDriver,include);
             result.Payload = _mapper.Map<VehicleResponse>(vehicle);
         }
         catch (Exception e)
@@ -107,7 +108,6 @@ public class VehicleService : IVehicleService
         {
             _unitOfWork.Dispose();
         }
-
         return result;
     }
 

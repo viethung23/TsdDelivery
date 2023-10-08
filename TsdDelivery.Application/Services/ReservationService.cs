@@ -349,16 +349,22 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<ReservationResponse>> AcceptReservation(Guid driverId, Guid reservationId)
+    public async Task<OperationResult<ReservationsResponse>> AcceptReservation(Guid driverId, Guid reservationId)
     {
-        var result = new OperationResult<ReservationResponse>();
+        var result = new OperationResult<ReservationsResponse>();
         try
         {
-            var driver = await _unitOfWork.UserRepository.GetByIdAsync(driverId);
+            var driver = await _unitOfWork.UserRepository.GetDriverDetail(driverId);
             var claimId = _claimsService.GetCurrentUserId;
             if (!claimId.Equals(driverId))
             {
                 result.AddError(ErrorCode.ServerError,"The driverID does not match the account used to login");
+                return result;
+            }
+            // check xem tai xe này đã đăng kí xe lên hệ thống chưa
+            if (driver.Vehicles.Count == 0)
+            {
+                result.AddError(ErrorCode.ServerError,"Your account has not registered a vehicle with the system");
                 return result;
             }
             if (driver!.DriverStatus == DriverStatus.Busy)
@@ -387,11 +393,21 @@ public class ReservationService : IReservationService
                 return result;
             }
             // check them tai xe nay co dung cai loai xe no yeu cau khong
+            if (!(driver.Vehicles.First()!.VehicleType?.Id).Equals(reservation.reservationDetails.First()!.Service?.VehicleType?.Id))
+            {
+                result.AddError(ErrorCode.ServerError,$"Your vehicle does not meet the requirements of the order for: [{reservation.reservationDetails.First()!.Service?.VehicleType?.VehicleTypeName}]");
+                return result;
+            }
             
-            
+            // after accept the status will be change 
+            driver.DriverStatus = DriverStatus.Busy;                                 
             reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
             reservation.Driver = driver;
             await _unitOfWork.SaveChangeAsync();
+            result.Payload = _mapper.Map<ReservationsResponse>(reservation);
+            
+            // ở đây gọi hangfire để xóa schedule job
+            
         }
         catch (Exception e)
         {
