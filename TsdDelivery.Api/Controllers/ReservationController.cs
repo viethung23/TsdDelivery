@@ -110,7 +110,7 @@ public class ReservationController : BaseController
     }
     
     /// <summary>
-    /// Api for Customer , Admin
+    /// Api for Customer, Admin 
     /// </summary>
     /// <param name="reservationId"></param>
     /// <returns></returns>
