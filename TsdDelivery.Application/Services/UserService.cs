@@ -167,7 +167,10 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.IncorrectPassword, "IncorrectPassword");
                 return result;
             }
-            
+            if (role!.RoleName == "DRIVER" && user.Vehicles.Count == 0)
+            {
+                // xử lý logic chỗ này sau 
+            }
             string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime(),_claimsService.Host);
 
             var userLoginResponse = new UserLoginResponse()

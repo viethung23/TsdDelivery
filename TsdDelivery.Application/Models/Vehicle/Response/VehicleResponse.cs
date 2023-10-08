@@ -1,4 +1,6 @@
-﻿namespace TsdDelivery.Application.Models.Vehicle.Response;
+﻿using TsdDelivery.Application.Models.VehicleType.DTO;
+
+namespace TsdDelivery.Application.Models.Vehicle.Response;
 
 public class VehicleResponse
 {
@@ -8,4 +10,5 @@ public class VehicleResponse
     public string VehicleLoad { get; set; }
     public string LicensePlate { get; set; }
     public string? ImageVehicle { get; set; }
+    public VehicleTypeDto VehicleTypeDto { get; set; }
 }

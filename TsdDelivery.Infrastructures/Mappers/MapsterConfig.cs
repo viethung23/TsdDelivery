@@ -2,6 +2,7 @@ using System.Reflection.PortableExecutable;
 using Mapster;
 using TsdDelivery.Application.Models.Reservation.Response;
 using TsdDelivery.Application.Models.Service.Response;
+using TsdDelivery.Application.Models.Vehicle.Response;
 using TsdDelivery.Application.Models.VehicleType.Response;
 using TsdDelivery.Domain.Entities;
 
@@ -13,6 +14,9 @@ public class MapsterConfig : IRegister
     {
         config.NewConfig<VehicleType, VehicleTypeDetailResponse>()
             .Map(dest => dest.Services, src => src.services);
+        
+        config.NewConfig<Vehicle, VehicleResponse>()
+            .Map(dest => dest.VehicleTypeDto, src => src.VehicleType);
 
         config.NewConfig<Reservation, ReservationResponse>()
             .Map(dest => dest.GoodsDto, src => src.Goods);

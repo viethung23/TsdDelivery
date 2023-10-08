@@ -19,7 +19,7 @@ public class VehicleTypeController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Authorize(Policy = "AdminOrUser")]
+    [Authorize]
     public async Task<IActionResult> GetAllVehicleType()
     {
         var response = await _vehicleTypeService.GetAllVehicleType();

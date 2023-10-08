@@ -22,6 +22,15 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     public Task<User?> GetUserByPhoneNumberAndRoleId(string phoneNumeber, Guid roleId)
     {
-        return _dbSet.FirstOrDefaultAsync(u => u.PhoneNumber.Equals(phoneNumeber) && u.RoleId.Equals(roleId));
+        //return _dbSet.FirstOrDefaultAsync(u => u.PhoneNumber.Equals(phoneNumeber) && u.RoleId.Equals(roleId));
+        return _dbSet.Where(x => x.PhoneNumber.Equals(phoneNumeber) && x.RoleId.Equals(roleId)).Include(x => x.Vehicles)
+            .FirstOrDefaultAsync();
+    }
+
+    public Task<User> GetDriverDetail(Guid driverId)
+    {
+       return _dbSet.Where(x => x.Id == driverId)
+            .Include(x => x.Vehicles)
+                .ThenInclude(x => x.VehicleType).FirstAsync();
     }
 }
