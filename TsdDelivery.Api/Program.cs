@@ -3,6 +3,7 @@ using HangfireBasicAuthenticationFilter;
 using TsdDelivery.Api;
 using TsdDelivery.Api.Middlewares;
 using TsdDelivery.Application.Commons;
+using TsdDelivery.Application.Interface;
 using TsdDelivery.Infrastructures;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,5 +70,5 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 });
 
 app.Run();
-
+RecurringJob.AddOrUpdate<IBackgroundService>(x => x.AutoResetCacheUserLoginCount(),Cron.Daily(17, 0));
 public partial class Program { }

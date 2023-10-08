@@ -25,4 +25,11 @@ public class DashBoardController : BaseController
         var response = await _dashBoardService.GetRevenueDataByTime(from,to);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUserLoginCount()
+    {
+        var response = await _dashBoardService.GetUserLoginCount();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

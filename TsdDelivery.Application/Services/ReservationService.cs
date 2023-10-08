@@ -164,7 +164,7 @@ public class ReservationService : IReservationService
                 // goi Background Service Check status sau 5p
                 var timeToCancel = DateTime.UtcNow.AddMinutes(5);
                 string id = BackgroundJob.Schedule<IBackgroundService>(
-                    x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel);
+                    x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel); 
             }
             catch (Exception e)
             {

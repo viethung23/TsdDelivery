@@ -1,3 +1,4 @@
+using StackExchange.Redis;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.DashBoard.Response;
@@ -8,10 +9,11 @@ namespace TsdDelivery.Application.Services;
 public class DashBoardService : IDashBoardService
 {
     private readonly IUnitOfWork _unitOfWork;
-
-    public DashBoardService(IUnitOfWork unitOfWork)
+    private readonly IConnectionMultiplexer _redisConnection;
+    public DashBoardService(IUnitOfWork unitOfWork,IConnectionMultiplexer connectionMultiplexer)
     {
         _unitOfWork = unitOfWork;
+        _redisConnection = connectionMultiplexer;
     }
     public async Task<OperationResult<UserCountResult>> GetCountPercentUser()
     {
@@ -77,6 +79,30 @@ public class DashBoardService : IDashBoardService
                 TotalExpensesForDriver = (double)totalExpensesForDriver 
             };
             result.Payload = revenueDataResponse;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<long>> GetUserLoginCount()
+    {
+        var result = new OperationResult<long>();
+        try
+        {
+            /*IDatabase redisDb = _redisConnection.GetDatabase();
+            string key = "user_logins_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
+            result.Payload = redisDb.SetLength(key);*/
+            
+            IDatabase redisDb = _redisConnection.GetDatabase();
+            string loginCountKey = "login_count_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
+            result.Payload = (long)redisDb.StringGet(loginCountKey);
         }
         catch (Exception e)
         {
