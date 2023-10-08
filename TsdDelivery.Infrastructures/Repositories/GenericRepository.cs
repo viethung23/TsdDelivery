@@ -76,7 +76,12 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         }
         _dbSet.UpdateRange(entities);
     }
-    
+
+    public Task<int> Count()
+    {
+        return _dbSet.CountAsync();
+    }
+
 
     public async Task<Pagination<TEntity>> ToPagination(int pageNumber = 0, int pageSize = 10)
     {

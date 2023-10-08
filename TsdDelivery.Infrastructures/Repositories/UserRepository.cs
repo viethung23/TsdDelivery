@@ -33,4 +33,9 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             .Include(x => x.Vehicles)
                 .ThenInclude(x => x.VehicleType).FirstAsync();
     }
+
+    public Task<int> GetUserCountByRole(Guid roleId)
+    {
+        return _dbSet.Where(x => x.RoleId == roleId).CountAsync();
+    }
 }
