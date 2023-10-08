@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
 using Hangfire;
-using Hangfire.Redis.StackExchange;
-using Hangfire.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services;
@@ -9,7 +7,6 @@ using TsdDelivery.Application;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore.Storage;
 using StackExchange.Redis;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Services.Momo;
@@ -65,13 +62,12 @@ public static class DependencyInjection
         {
             x.UseRedisStorage(redisConnection); 
         });*/
-        
+
         //add redis cache
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = redisConnection; 
-        });
-        
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnection));
+
+
+
         services.AddHangfireServer();
         services.AddTransient<IBackgroundService, BackgroundService>();
         return services;

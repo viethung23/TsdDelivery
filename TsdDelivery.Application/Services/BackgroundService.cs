@@ -1,3 +1,4 @@
+using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services.Momo.Request;
@@ -11,10 +12,16 @@ public class BackgroundService : IBackgroundService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly AppConfiguration _configuration;
-    public BackgroundService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration)
+    private readonly IConnectionMultiplexer _redisConnection;
+    private readonly ICurrentTime _currentTime;
+    public BackgroundService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration
+        ,IConnectionMultiplexer connectionMultiplexer
+        ,ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _configuration = appConfiguration;
+        _redisConnection = connectionMultiplexer;
+        _currentTime = currentTime;
     }
     
     public async Task AutoCancelReservationWhenOverAllowPaymentTime(Guid reservationId)
@@ -89,5 +96,12 @@ public class BackgroundService : IBackgroundService
         {
             throw new Exception($"Error at BackgroundService.AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver: Message {e.Message}");
         }
+    }
+
+    public async Task AutoResetCacheUserLoginCount()
+    {
+        IDatabase redisDb = _redisConnection.GetDatabase();
+        string loginCountKey = "login_count_" + _currentTime.GetCurrentTime().ToString("yyyyMMdd");
+        redisDb.StringSet(loginCountKey, 0);
     }
 }

@@ -1,6 +1,7 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using MapsterMapper;
+﻿using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
@@ -20,11 +21,13 @@ public class UserService : IUserService
     private readonly AppConfiguration _appConfiguration;
     private readonly IClaimsService _claimsService;
     private readonly IMapper _mapper;
+    private readonly IDistributedCache _cache;
+    private readonly IConnectionMultiplexer _redisConnection;
     
     public UserService(IUnitOfWork unitOfWork, ICurrentTime currentTime
         ,IBlobStorageAzureService blobStorageAzureService
         ,AppConfiguration appConfiguration,IClaimsService claimsService
-        ,IMapper mapper)
+        ,IMapper mapper,IConnectionMultiplexer redisConnection)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
@@ -32,6 +35,7 @@ public class UserService : IUserService
         _appConfiguration = appConfiguration;
         _claimsService = claimsService;
         _mapper = mapper;
+        _redisConnection = redisConnection;
     }
 
     public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
@@ -172,8 +176,16 @@ public class UserService : IUserService
                 RoleName = user.Role.RoleName,
                 Token = token
             };
-
             result.Payload = userLoginResponse;
+            
+            // add user vao redis cache (tính những người có tk nào đã đăng nhập)
+            /*IDatabase redisDb = _redisConnection.GetDatabase();
+            string key = "user_logins_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
+            redisDb.SetAdd(key, user.Id.ToString());*/
+            
+            IDatabase redisDb = _redisConnection.GetDatabase();
+            string loginCountKey = "login_count_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
+            redisDb.StringIncrement(loginCountKey);
         }
         catch (Exception ex)
         {
