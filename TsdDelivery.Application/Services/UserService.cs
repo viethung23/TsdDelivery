@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography.X509Certificates;
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
@@ -18,16 +19,19 @@ public class UserService : IUserService
     private readonly IBlobStorageAzureService _blobStorageAzureService;
     private readonly AppConfiguration _appConfiguration;
     private readonly IClaimsService _claimsService;
+    private readonly IMapper _mapper;
     
     public UserService(IUnitOfWork unitOfWork, ICurrentTime currentTime
         ,IBlobStorageAzureService blobStorageAzureService
-        ,AppConfiguration appConfiguration,IClaimsService claimsService)
+        ,AppConfiguration appConfiguration,IClaimsService claimsService
+        ,IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
         _blobStorageAzureService = blobStorageAzureService;
         _appConfiguration = appConfiguration;
         _claimsService = claimsService;
+        _mapper = mapper;
     }
 
     public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
@@ -36,30 +40,11 @@ public class UserService : IUserService
         try
         {
             // config property include 
-            string[] role = { "Role"}; 
+            string[] includes = { "Role","Vehicles"}; 
 
-            var users = await _unitOfWork.UserRepository.GetAllAsync(role);
+            var users = await _unitOfWork.UserRepository.GetAllAsync(includes);
             
-            var listUserResponse = new List<UserResponse>();
-            foreach (var user in users)
-            {
-
-                var userResponse = new UserResponse
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    AvatarUrl = user.AvatarUrl,
-                    CreatedBy = user.CreatedBy,
-                    CreationDate = user.CreationDate,
-                    FullName = user.FullName,
-                    ModificationDate = user.ModificationDate,
-                    PhoneNumber = user.PhoneNumber,
-                    RoleName = user.Role.RoleName,
-                    IsDelete = user.IsDeleted
-                };
-                listUserResponse.Add(userResponse);
-            }
-            result.Payload = listUserResponse;
+            result.Payload = _mapper.Map<List<UserResponse>>(users);
         }
         catch (Exception ex)
         {

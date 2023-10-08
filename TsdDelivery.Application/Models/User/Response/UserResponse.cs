@@ -1,4 +1,6 @@
-﻿namespace TsdDelivery.Application.Models.User.Response;
+﻿using TsdDelivery.Application.Models.Vehicle.DTO;
+
+namespace TsdDelivery.Application.Models.User.Response;
 
 public record UserResponse
 /*(
@@ -23,5 +25,6 @@ public record UserResponse
     public DateTime? ModificationDate { get; set; }
     public string? RoleName { get; set; }
     public bool? IsDelete { get; set; }
+    public VehicleDto? VehicleDto { get; set; }
 
 }
