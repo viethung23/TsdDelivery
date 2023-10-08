@@ -4,5 +4,4 @@ namespace TsdDelivery.Application.Repositories;
 
 public interface IWalletRepository : IGenericRepository<Wallet>
 {
-    
 }

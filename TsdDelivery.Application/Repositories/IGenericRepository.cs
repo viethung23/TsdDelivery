@@ -15,6 +15,7 @@ public interface IGenericRepository<TEntity> where TEntity : BaseEntity
     Task Delete(TEntity entity);
     Task AddRangeAsync(List<TEntity> entities);
     Task SoftRemoveRange(List<TEntity> entities);
+    Task<int> Count();
 
     Task<TEntity> GetSingleByCondition(Expression<Func<TEntity, bool>> expression, string[] includes = null);
     Task<List<TEntity>> GetMulti(Expression<Func<TEntity, bool>> predicate, string[] includes = null);

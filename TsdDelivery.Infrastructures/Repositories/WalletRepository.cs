@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Domain.Entities;
@@ -12,4 +13,5 @@ public class WalletRepository : GenericRepository<Wallet>,IWalletRepository
     {
         
     }
+    
 }
