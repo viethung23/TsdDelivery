@@ -2,6 +2,7 @@
 
 public enum ErrorCode
 {
+    NoContent = 204,
     NotFound = 404,
     ServerError = 500,
     UnAuthorize = 401,
