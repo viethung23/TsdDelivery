@@ -2,6 +2,7 @@ using StackExchange.Redis;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.DashBoard.Response;
+using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
 namespace TsdDelivery.Application.Services;
@@ -50,33 +51,31 @@ public class DashBoardService : IDashBoardService
             var adminId = new Guid("5f00b441-a792-4d46-eece-08dbbe590f42");
             var include = new[] { "Transactions" };
             var wallet = await _unitOfWork.WalletRepository.GetSingleByCondition(x => x.UserId == adminId,include);
-            var trans = wallet.Transactions!.Where(x => x.CreationDate >= from && x.CreationDate <= to).ToList();
+            var trans = wallet.Transactions!.Where(x => x.CreationDate >= from && x.CreationDate <= to.AddDays(1)).ToList();
             // xu ly data
-            var totalRevenueReceived = 0M;
-            var totalPayouts = 0M;
-            var totalExpensesForDriver = 0M;
-            foreach (var tr in trans)
+            var test = CalculateTransactionsStatistics(trans);
+            var transByDate = trans.GroupBy(x => x.CreationDate.Date).ToDictionary(x => x.Key, g => g.ToList());
+            var listDateGroup = new List<RevenueDataDayByDayResponse>();
+            foreach (var dateGroup in transByDate)
             {
-                if (tr.TransactionType == TransactionType.Plus)
+                var test2 = CalculateTransactionsStatistics(dateGroup.Value);
+                var group = new RevenueDataDayByDayResponse
                 {
-                    totalRevenueReceived += tr.Price;
-                }
-                if (tr.TransactionType == TransactionType.Minus)
-                {
-                    totalPayouts += tr.Price;
-                }
-
-                if (tr.TransactionType == TransactionType.Minus && tr.Description.Contains("thanh toán cho tài xế"))
-                {
-                    totalExpensesForDriver += tr.Price;
-                }
+                    Date = dateGroup.Key,
+                    TotalRevenueReceived = test2.totalRevenueReceived,
+                    TotalPayouts = test2.totalPayouts,
+                    TotalExpensesForDriver = test2.totalExpensesForDriver
+                };
+  
+                listDateGroup.Add(group);
             }
 
             var revenueDataResponse = new RevenueDataResponse()
             {
-                TotalRevenueReceived = (double)totalRevenueReceived,
-                TotalPayouts = (double)totalPayouts,
-                TotalExpensesForDriver = (double)totalExpensesForDriver 
+                TotalRevenueReceived = test.totalRevenueReceived,
+                TotalPayouts = test.totalPayouts,
+                TotalExpensesForDriver = test.totalExpensesForDriver,
+                RevenueDataDayByDayResponses = listDateGroup
             };
             result.Payload = revenueDataResponse;
         }
@@ -113,5 +112,29 @@ public class DashBoardService : IDashBoardService
             _unitOfWork.Dispose();
         }
         return result;
+    }
+
+    private (double totalRevenueReceived, double totalPayouts, double totalExpensesForDriver) CalculateTransactionsStatistics(List<Transaction> trans)
+    {
+        var totalRevenueReceived = 0M;
+        var totalPayouts = 0M;
+        var totalExpensesForDriver = 0M;
+        foreach (var tr in trans)
+        {
+            if (tr.TransactionType == TransactionType.Plus)
+            {
+                totalRevenueReceived += tr.Price;
+            }
+            if (tr.TransactionType == TransactionType.Minus)
+            {
+                totalPayouts += tr.Price;
+            }
+
+            if (tr.TransactionType == TransactionType.Minus && tr.Description.Contains("thanh toán cho tài xế"))
+            {
+                totalExpensesForDriver += tr.Price;
+            }
+        }
+        return ((double)totalRevenueReceived, (double)totalPayouts, (double)totalExpensesForDriver);
     }
 }

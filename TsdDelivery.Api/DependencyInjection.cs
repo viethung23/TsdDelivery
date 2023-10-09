@@ -81,7 +81,9 @@ public static class DependencyInjection
                     IssuerSigningKey = new SymmetricSecurityKey(
                         System.Text.Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
                     ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(jwtSettings.ExpiryMinutes) 
                 };
             });
         //------------------------------------------------------------------------

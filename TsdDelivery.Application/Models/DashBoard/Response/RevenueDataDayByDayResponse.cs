@@ -1,9 +1,9 @@
 namespace TsdDelivery.Application.Models.DashBoard.Response;
 
-public class RevenueDataResponse
+public class RevenueDataDayByDayResponse
 {
+    public DateTime Date { get; set; }
     public double TotalRevenueReceived { get; set; }
     public double TotalPayouts { get; set; }
     public double TotalExpensesForDriver { get; set; }
-    public List<RevenueDataDayByDayResponse> RevenueDataDayByDayResponses { get; set; }
 }
