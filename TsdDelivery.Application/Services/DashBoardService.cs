@@ -11,10 +11,12 @@ public class DashBoardService : IDashBoardService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConnectionMultiplexer _redisConnection;
-    public DashBoardService(IUnitOfWork unitOfWork,IConnectionMultiplexer connectionMultiplexer)
+    private readonly ICurrentTime _currentTime;
+    public DashBoardService(IUnitOfWork unitOfWork,IConnectionMultiplexer connectionMultiplexer,ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _redisConnection = connectionMultiplexer;
+        _currentTime = currentTime;
     }
     public async Task<OperationResult<UserCountResult>> GetCountPercentUser()
     {
@@ -119,6 +121,11 @@ public class DashBoardService : IDashBoardService
         var result = new OperationResult<UserLoginResponse>();
         try
         {
+            if (to > _currentTime.GetCurrentTime())
+            {
+                result.AddError(ErrorCode.ServerError,"'to' cannot be greater than the current time");
+                return result;
+            }
             var includes = new[] { "loggedInUser" };
             var userLogins = await _unitOfWork.UserLoginRepository.GetMulti(x => x.CreationDate >= from && x.CreationDate <= to.AddDays(1),includes);
             var totalUserlogin = CountUserLogin(userLogins);
