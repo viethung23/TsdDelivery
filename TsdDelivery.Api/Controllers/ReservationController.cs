@@ -1,8 +1,10 @@
+using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.Coordinates;
+using TsdDelivery.Application.Models.Reservation.Enum;
 using TsdDelivery.Application.Models.Reservation.Request;
 
 namespace TsdDelivery.Api.Controllers;
@@ -50,8 +52,13 @@ public class ReservationController : BaseController
     }
 
     /// <summary>
-    /// Api for driver
+    /// Api for Driver
     /// </summary>
+    /// <param name="Latitude"></param>
+    /// <param name="Longitude"></param>
+    /// <param name="LatitudeDes"></param>
+    /// <param name="LongitudeDes"></param>
+    /// <param name="isNow"></param>
     /// <returns></returns>
     [HttpGet]
     [ValidateModel]
@@ -66,10 +73,13 @@ public class ReservationController : BaseController
     }
 
     /// <summary>
-    /// Api for driver
+    /// Api for Driver
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="coordinates"></param>
+    /// <param name="reservationId"></param>
+    /// <param name="Latitude"></param>
+    /// <param name="Longitude"></param>
+    /// <param name="LatitudeDes"></param>
+    /// <param name="LongitudeDes"></param>
     /// <returns></returns>
     [HttpGet]
     [ValidateModel]
@@ -85,15 +95,23 @@ public class ReservationController : BaseController
     }
     
     /// <summary>
-    /// Api for driver
+    /// Api for Driver 
     /// </summary>
+    /// <param name="driverId"></param>
+    /// <param name="reservationId"></param>
+    /// <param name="action"></param>
     /// <returns></returns>
+    /// <remarks>
+    ///     0 - Nhận đơn, 
+    ///     1 - Đã lấy hàng và đang giao, 
+    ///     2 - Giao thành công
+    /// </remarks>
     [HttpPost]
     [ValidateGuid]
     [Authorize(Policy = "RequireDriverRole")]
-    public async Task<IActionResult> AcceptReservation(Guid driverId,Guid reservationId)
+    public async Task<IActionResult> DriverReservationAction(Guid driverId,Guid reservationId, DriverReservationAction action)
     {
-        var response = await _reservationService.AcceptReservation(driverId, reservationId);
+        var response = await _reservationService.DriverReservationAction(driverId, reservationId, action);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 

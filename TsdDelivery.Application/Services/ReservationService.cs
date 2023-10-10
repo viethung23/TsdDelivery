@@ -6,9 +6,9 @@ using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.Coordinates;
 using TsdDelivery.Application.Models.Reservation.DTO;
+using TsdDelivery.Application.Models.Reservation.Enum;
 using TsdDelivery.Application.Models.Reservation.Request;
 using TsdDelivery.Application.Models.Reservation.Response;
-using TsdDelivery.Application.Services.Momo.Request;
 using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
@@ -349,7 +349,7 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<ReservationsResponse>> AcceptReservation(Guid driverId, Guid reservationId)
+    public async Task<OperationResult<ReservationsResponse>> DriverReservationAction(Guid driverId, Guid reservationId, DriverReservationAction action)
     {
         var result = new OperationResult<ReservationsResponse>();
         try
@@ -373,39 +373,48 @@ public class ReservationService : IReservationService
                 return result;
             }
             var reservation = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
-            if (!reservation!.ReservationStatus.Equals(ReservationStatus.AwaitingDriver))
-            {
-                switch (reservation.ReservationStatus)
-                {
-                    case ReservationStatus.AwaitingPayment:
-                        result.AddError(ErrorCode.ServerError,"đơn hàng này đang trong trạng thái chờ thanh toán");
-                        break;
-                    case ReservationStatus.Cancelled:
-                        result.AddError(ErrorCode.ServerError,"đơn hàng này đã bị cancel");
-                        break;
-                    case ReservationStatus.Completed:
-                        result.AddError(ErrorCode.ServerError,"đơn hàng này đã hoàn thành");
-                        break;
-                    default:
-                        result.AddError(ErrorCode.ServerError,"đơn hàng này đã được nhận bởi tài xế khác");
-                        break;
-                }
-                return result;
-            }
             // check them tai xe nay co dung cai loai xe no yeu cau khong
             if (!(driver.Vehicles.First()!.VehicleType?.Id).Equals(reservation.reservationDetails.First()!.Service?.VehicleType?.Id))
             {
                 result.AddError(ErrorCode.ServerError,$"Your vehicle does not meet the requirements of the order for: [{reservation.reservationDetails.First()!.Service?.VehicleType?.VehicleTypeName}]");
                 return result;
             }
-            
-            // after accept the status will be change 
-            driver.DriverStatus = DriverStatus.Busy;                                 
-            reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
-            reservation.Driver = driver;
-            await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<ReservationsResponse>(reservation);
-            
+            switch (action)
+            {
+                case Models.Reservation.Enum.DriverReservationAction.Accept : 
+                    if (!reservation!.ReservationStatus.Equals(ReservationStatus.AwaitingDriver))
+                    {
+                        switch (reservation.ReservationStatus)
+                        {
+                            case ReservationStatus.AwaitingPayment:
+                                result.AddError(ErrorCode.ServerError,"đơn hàng này đang trong trạng thái chờ thanh toán");
+                                break;
+                            case ReservationStatus.Cancelled:
+                                result.AddError(ErrorCode.ServerError,"đơn hàng này đã bị cancel");
+                                break;
+                            case ReservationStatus.Completed:
+                                result.AddError(ErrorCode.ServerError,"đơn hàng này đã hoàn thành");
+                                break;
+                            default:
+                                result.AddError(ErrorCode.ServerError,"đơn hàng này đã được nhận bởi tài xế khác");
+                                break;
+                        }
+                        return result;
+                    }
+                    // after accept the status will be change 
+                    driver.DriverStatus = DriverStatus.Busy;                                 
+                    reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
+                    reservation.Driver = driver;
+                    await _unitOfWork.SaveChangeAsync();
+                    result.Payload = _mapper.Map<ReservationsResponse>(reservation);
+                    break;
+                
+                case Models.Reservation.Enum.DriverReservationAction.Delivery : 
+                    break;
+                case Models.Reservation.Enum.DriverReservationAction.Done :
+                    break;
+            }
+
             // ở đây gọi hangfire để xóa schedule job
             
         }
