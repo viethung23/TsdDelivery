@@ -183,9 +183,14 @@ public class UserService : IUserService
             string key = "user_logins_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
             redisDb.SetAdd(key, user.Id.ToString());*/
             
-            IDatabase redisDb = _redisConnection.GetDatabase();
+            /*IDatabase redisDb = _redisConnection.GetDatabase();
             string loginCountKey = "login_count_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
-            redisDb.StringIncrement(loginCountKey);
+            redisDb.StringIncrement(loginCountKey);*/
+            
+            // add user vao bang userLogin
+            var userLogin = new UserLogin() { UserId = user.Id };
+            await _unitOfWork.UserLoginRepository.AddAsync(userLogin);
+            await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception ex)
         {

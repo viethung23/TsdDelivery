@@ -27,9 +27,9 @@ public class DashBoardController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetUserLoginCount()
+    public async Task<IActionResult> GetUserLoginCount(DateTime from, DateTime to)
     {
-        var response = await _dashBoardService.GetUserLoginCount();
+        var response = await _dashBoardService.GetUserLoginCount(from,to);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

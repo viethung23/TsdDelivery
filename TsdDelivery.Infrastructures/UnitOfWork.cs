@@ -35,6 +35,8 @@ public class UnitOfWork : IUnitOfWork
     public IWalletRepository WalletRepository => new WalletRepository(_appDbContext,_claimsService,_currentTime);
     public ITransactionRepository TransactionRepository => new TransactionRepository(_appDbContext, _currentTime, _claimsService);
 
+    public IUserLoginRepository UserLoginRepository => new UserLoginRepository(_appDbContext, _currentTime, _claimsService);
+
     public async Task<int> SaveChangeAsync()
     {
         return await _appDbContext.SaveChangesAsync();
