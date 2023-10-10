@@ -36,7 +36,29 @@ public class UserController : BaseController
 
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("SUCCESS");
     }
-    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// Sample request:
+    ///
+    ///     POST /Driver
+    ///     {
+    ///        "phoneNumber": "0987656765",
+    ///        "password": "123",
+    ///        "roleId": "1cb47d53-a12c-4fd6-a4cc-08dba3d1f4f1"
+    ///     }
+    ///
+    ///     POST /User
+    ///     {
+    ///        "phoneNumber": "2222222222",
+    ///        "password": "123",
+    ///        "roleId": "0170ca46-f56b-4575-a4cb-08dba3d1f4f1"
+    ///     }
+    ///
+    /// </remarks> 
     [HttpPost]
     [ValidateModel]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
