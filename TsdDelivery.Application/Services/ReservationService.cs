@@ -367,11 +367,7 @@ public class ReservationService : IReservationService
                 result.AddError(ErrorCode.ServerError,"Your account has not registered a vehicle with the system");
                 return result;
             }
-            if (driver!.DriverStatus == DriverStatus.Busy)
-            {
-                result.AddError(ErrorCode.ServerError,"You cannot accept this order because you are currently delivering another order.");
-                return result;
-            }
+            
             var reservation = await _unitOfWork.ReservationRepository.GetReservationDetail(reservationId);
             // check them tai xe nay co dung cai loai xe no yeu cau khong
             if (!(driver.Vehicles.First()!.VehicleType?.Id).Equals(reservation.reservationDetails.First()!.Service?.VehicleType?.Id))
@@ -382,6 +378,12 @@ public class ReservationService : IReservationService
             switch (action)
             {
                 case Models.Reservation.Enum.DriverReservationAction.Accept : 
+                    // Logic case 1
+                    if (driver!.DriverStatus == DriverStatus.Busy)
+                    {
+                        result.AddError(ErrorCode.ServerError,"You cannot accept this order because you are currently delivering another order.");
+                        return result;
+                    }
                     if (!reservation!.ReservationStatus.Equals(ReservationStatus.AwaitingDriver))
                     {
                         switch (reservation.ReservationStatus)
@@ -410,8 +412,28 @@ public class ReservationService : IReservationService
                     break;
                 
                 case Models.Reservation.Enum.DriverReservationAction.Delivery : 
+                    // Logic case 2
+                    if (driver!.DriverStatus != DriverStatus.Busy || !reservation.DriverId.Equals(driverId) || reservation.ReservationStatus != ReservationStatus.OnTheWayToPickupPoint)
+                    {
+                        result.AddError(ErrorCode.ServerError,$"Cannot do this action {action.ToString()}");
+                        return result;
+                    }
+                    reservation.ReservationStatus = ReservationStatus.InDelivery;
+                    await _unitOfWork.SaveChangeAsync();
+                    result.Payload = _mapper.Map<ReservationsResponse>(reservation);
                     break;
+                
                 case Models.Reservation.Enum.DriverReservationAction.Done :
+                    // Logic case 3
+                    if (driver!.DriverStatus != DriverStatus.Busy || !reservation.DriverId.Equals(driverId) || reservation.ReservationStatus != ReservationStatus.InDelivery)
+                    {
+                        result.AddError(ErrorCode.ServerError,$"Cannot do this action {action.ToString()}");
+                        return result;
+                    }
+                    reservation.ReservationStatus = ReservationStatus.Completed;
+                    driver.DriverStatus = DriverStatus.Available;
+                    await _unitOfWork.SaveChangeAsync();
+                    result.Payload = _mapper.Map<ReservationsResponse>(reservation);
                     break;
             }
 
