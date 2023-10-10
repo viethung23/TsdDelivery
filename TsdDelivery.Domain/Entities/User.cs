@@ -15,7 +15,9 @@ public class User : BaseEntity
     public Role? Role { get; set; }
 
     public ICollection<Vehicle?> Vehicles { get; set; }
+    public Wallet? Wallet { get; set; }
     public ICollection<Reservation?> ReservationUsers { get; set; }
     public ICollection<Reservation?> ReservationDrivers { get; set; }
-    public Wallet? Wallet { get; set; }
+    public ICollection<UserLogin?> UserLogins { get; set; }
+    
 }

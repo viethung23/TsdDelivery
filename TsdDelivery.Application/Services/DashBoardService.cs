@@ -90,18 +90,58 @@ public class DashBoardService : IDashBoardService
         return result;
     }
 
-    public async Task<OperationResult<long>> GetUserLoginCount()
+    /*public async Task<OperationResult<long>> GetUserLoginCount()
     {
         var result = new OperationResult<long>();
         try
         {
             /*IDatabase redisDb = _redisConnection.GetDatabase();
             string key = "user_logins_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
-            result.Payload = redisDb.SetLength(key);*/
+            result.Payload = redisDb.SetLength(key);#1#
             
             IDatabase redisDb = _redisConnection.GetDatabase();
             string loginCountKey = "login_count_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
             result.Payload = (long)redisDb.StringGet(loginCountKey);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }*/
+    
+    public async Task<OperationResult<UserLoginResponse>> GetUserLoginCount(DateTime from, DateTime to)
+    {
+        var result = new OperationResult<UserLoginResponse>();
+        try
+        {
+            var includes = new[] { "loggedInUser" };
+            var userLogins = await _unitOfWork.UserLoginRepository.GetMulti(x => x.CreationDate >= from && x.CreationDate <= to.AddDays(1),includes);
+            var totalUserlogin = CountUserLogin(userLogins);
+            // xu ly data
+            var userLoginDay = userLogins.GroupBy(x => x.CreationDate.Date).ToDictionary(x => x.Key, g => g.ToList());
+            var list = new List<UserLoginDayByDay>();
+            foreach (var group in userLoginDay)
+            {
+                var count = CountUserLogin(group.Value);
+                var userLoginData = new UserLoginDayByDay()
+                {
+                    Date = group.Key,
+                    TotalUserLogin = count
+                };
+                list.Add(userLoginData);
+            }
+
+            var userLoginResponse = new UserLoginResponse()
+            {
+                TotalUserLogin = totalUserlogin,
+                UserLoginDayByDays = list
+            };
+            result.Payload = userLoginResponse;
         }
         catch (Exception e)
         {
@@ -136,5 +176,10 @@ public class DashBoardService : IDashBoardService
             }
         }
         return ((double)totalRevenueReceived, (double)totalPayouts, (double)totalExpensesForDriver);
+    }
+
+    private long CountUserLogin(List<UserLogin> userLogin)
+    {
+        return userLogin.Count;
     }
 }
