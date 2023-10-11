@@ -158,7 +158,7 @@ public class UserService : IUserService
             }
             if (role!.RoleName == "DRIVER" && user.Vehicles.Count == 0)
             {
-                result.AddError(ErrorCode.NoContent, "Your account has not registered a vehicle with the system");
+                result.AddError(ErrorCode.ServerError, "Your account has not registered a vehicle with the system");
                 return result;
             }
             string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime(),_claimsService.Host);
