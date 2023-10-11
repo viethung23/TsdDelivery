@@ -505,6 +505,34 @@ public class ReservationService : IReservationService
         return result;
     }
 
+    public async Task<OperationResult<ReservationsResponse>> GetCurrentAcceptedReservationbyDriver(Guid dirverId)
+    {
+        var result = new OperationResult<ReservationsResponse>();
+        try
+        {
+            var include = new[] { "User","Driver" };
+            
+            var re = await _unitOfWork.ReservationRepository
+                .GetSingleByCondition(x => x.DriverId == dirverId && 
+                                           (x.ReservationStatus == ReservationStatus.OnTheWayToPickupPoint || x.ReservationStatus == ReservationStatus.InDelivery),include);
+            if (re.Driver!.DriverStatus == DriverStatus.Available)
+            {
+                result.AddError(ErrorCode.NoContent,"Tài khoản của bạn đang trong trạng thái busy");
+                return result;
+            }
+            result.Payload = _mapper.Map<ReservationsResponse>(re);
+        }
+        catch (Exception e)
+        {
+            result.AddError(ErrorCode.NoContent,"khong tim thay don hang");
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
     //--------------------------------------------------------------------------------------------------------------------------------
     private decimal CalculateShippingRateByKm(decimal km, List<ShippingRate> list)
     {

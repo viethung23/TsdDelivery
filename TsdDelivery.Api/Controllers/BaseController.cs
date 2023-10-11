@@ -24,6 +24,17 @@ public class BaseController : ControllerBase
 
             return NotFound(apiError);
         }
+        if(errors.Any(e => e.Code == ErrorCode.NoContent))
+        {
+            var error = errors.FirstOrDefault(e => e.Code == ErrorCode.NoContent);
+
+            apiError.StatusCode = 204;
+            apiError.StatusPhrase = "No Content";
+            apiError.Timestamp = DateTime.Now;
+            apiError.Errors.Add(error.Message);
+
+            return NoContent();
+        }
 
         apiError.StatusCode = 400;
         apiError.StatusPhrase = "Bad request";
