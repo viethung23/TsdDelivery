@@ -36,6 +36,7 @@ public class UserController : BaseController
 
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok("SUCCESS");
     }
+    
     /// <summary>
     /// 
     /// </summary>
