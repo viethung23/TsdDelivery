@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Hangfire;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
@@ -19,30 +20,26 @@ public class MomoService : IMomoService
     private readonly AppConfiguration _configuration;
     private readonly IHangFireRepository _hangFireRepository;
     private readonly ICurrentTime _currentTime;
-    private static MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
-    public MomoService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration,IHangFireRepository hangFireRepository,ICurrentTime currentTime)
+    private readonly IConnectionMultiplexer _redisConnection;
+    public MomoService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration
+        ,IHangFireRepository hangFireRepository,ICurrentTime currentTime
+        ,IConnectionMultiplexer redisConnection)
     {
         _unitOfWork = unitOfWork;
         _configuration = appConfiguration;
         _hangFireRepository = hangFireRepository;
         _currentTime = currentTime;
+        _redisConnection = redisConnection;
     }
     
     public async Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest request)
     {
         var result = new OperationResult<string>();
         const string methodName = "AutoCancelReservationWhenOverAllowPaymentTime";
-        var cacheKey = $"MomoPayment_{request.signature}";
-        if(_cache.Get(cacheKey) != null) 
-        {
-            // Trả về kết quả từ cache
-            result.Payload = "ban da thanh toan thanh cong";
-            return result;
-        }
         try
         {
             var isValidSignature = request.IsValidSignature(_configuration.MomoConfig.AccessKey, _configuration.MomoConfig.SecretKey);
-            if (isValidSignature == true || isValidSignature == false)      // đaonj này đang k check chữ kí
+            if (isValidSignature)
             {
                 var id = Guid.Parse(request.orderId);
                 var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(id);
@@ -76,11 +73,9 @@ public class MomoService : IMomoService
                     await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
                     await _unitOfWork.SaveChangeAsync();
                     
-                    
-                    
-                    _cache.Set(cacheKey, result, TimeSpan.FromMinutes(7));
-                    
-                    result.Payload = "Thanh toan thanh cong";
+                    var cache = _redisConnection.GetDatabase();
+                    var FeHost = cache.StringGet(request.orderId);
+                    result.Payload = FeHost;
                     // goi Background Service Check status va refund sau 5p
                     var timeToCancel = DateTime.UtcNow.AddMinutes(5);
                     BackgroundJob.Schedule<IBackgroundService>(
@@ -92,12 +87,14 @@ public class MomoService : IMomoService
                 }
                 else
                 {
-                    result.Payload = "Payment process failed";
+                    result.AddError(ErrorCode.ServerError, "Payment process failed");
+                    return result;
                 }
             }
             else
             {
-                result.Payload = "Invalid signature in response";
+                result.AddError(ErrorCode.ServerError, "Invalid signature in response");
+                return result;
             }
         }
         catch (Exception e)

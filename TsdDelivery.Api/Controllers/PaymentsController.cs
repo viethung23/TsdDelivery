@@ -29,7 +29,7 @@ public class PaymentsController : BaseController
     public async Task<IActionResult> MomoReturn([FromQuery]MomoOneTimePaymentResultRequest request)
     {
         var response = await _momoService.ProcessMomoPaymentReturn(request);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Redirect("http://localhost:3000/order-success");
+        return response.IsError ? HandleErrorResponse(response.Errors) : Redirect($"{response.Payload}/order-success");
     }
 
     [HttpPost]

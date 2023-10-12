@@ -161,7 +161,7 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.ServerError, "Your account has not registered a vehicle with the system");
                 return result;
             }
-            string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime(),_claimsService.Host);
+            string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime());
 
             var userLoginResponse = new UserLoginResponse()
             {
