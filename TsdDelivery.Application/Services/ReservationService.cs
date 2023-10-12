@@ -396,7 +396,7 @@ public class ReservationService : IReservationService
             {
                 case Models.Reservation.Enum.DriverReservationAction.Accept : 
                     // Logic case 1
-                    /*if (driver!.DriverStatus == DriverStatus.Busy)
+                    if (driver!.DriverStatus == DriverStatus.Busy)
                     {
                         result.AddError(ErrorCode.ServerError,"You cannot accept this order because you are currently delivering another order.");
                         return result;
@@ -419,7 +419,7 @@ public class ReservationService : IReservationService
                                 break;
                         }
                         return result;
-                    }*/
+                    }
                     // after accept the status will be change 
                     driver.DriverStatus = DriverStatus.Busy;                                 
                     //reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
