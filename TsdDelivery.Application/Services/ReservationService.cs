@@ -1,6 +1,8 @@
 using Hangfire;
 using Mapster;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
+using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
@@ -24,10 +26,12 @@ public class ReservationService : IReservationService
     private readonly IClaimsService _claimsService;
     private readonly IMomoService _momoService;
     private readonly IZaloPayService _zaloPayService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IConnectionMultiplexer _redisConnection;
 
     public ReservationService(IUnitOfWork unitOfWork, IMapper mapper, AppConfiguration appConfiguration,
         ICurrentTime currentTime, IClaimsService claimsService, IMapService mapService, IMomoService momoService,
-        IZaloPayService zaloPayService)
+        IZaloPayService zaloPayService,IHttpContextAccessor httpContextAccessor,IConnectionMultiplexer redisConnection)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -37,6 +41,8 @@ public class ReservationService : IReservationService
         _mapService = mapService;
         _momoService = momoService;
         _zaloPayService = zaloPayService;
+        _httpContextAccessor = httpContextAccessor;
+        _redisConnection = redisConnection;
     }
 
     public async Task<OperationResult<CalculatePriceResponse>> CalculateTotalPrice(CalculatePriceRequest request)
@@ -160,6 +166,14 @@ public class ReservationService : IReservationService
                 }
                 
                 await transaction.CommitAsync();
+                
+                // lấy host từ request
+                
+                var requestContext = _httpContextAccessor?.HttpContext?.Request;
+                var host = requestContext.Scheme + "://" + requestContext.Host;
+                // gọi cache ra set host và với key là ID reservation
+                IDatabase cache = _redisConnection.GetDatabase();
+                cache.StringSet(entity.Id.ToString(), host,TimeSpan.FromMinutes(20));
                 
                 // goi Background Service Check status sau 5p
                 var timeToCancel = DateTime.UtcNow.AddMinutes(5);
@@ -567,6 +581,11 @@ public class ReservationService : IReservationService
             _unitOfWork.Dispose();
         }
         return result;
+    }
+
+    public Task<OperationResult<ReservationResponse>> GetCurrentAcceptedReservationbyUser(Guid userId)
+    {
+        throw new NotImplementedException();
     }
 
     //--------------------------------------------------------------------------------------------------------------------------------

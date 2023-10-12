@@ -154,4 +154,14 @@ public class ReservationController : BaseController
         var response = await _reservationService.GetCurrentAcceptedReservationbyDriver(driverId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpGet("/api/current-reservation-of-user")]
+    [ValidateGuid]
+    [Authorize(Policy = "RequireDriverRole")]
+    public async Task<IActionResult> GetCurrentAcceptedReservationByUser(Guid userId)
+    {
+        var response = await _reservationService.GetCurrentAcceptedReservationbyUser(userId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
 }

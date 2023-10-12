@@ -17,4 +17,5 @@ public interface IReservationService
     public Task<OperationResult<List<ReservationHistoryResponse>>> GetReservationHistoryForUser();
     public Task<OperationResult<ReservationHistoryDetailResponse>> GetReservationHistoryDetailForUser(Guid reservationId);
     public Task<OperationResult<ReservationsResponse>> GetCurrentAcceptedReservationbyDriver(Guid dirverId);
+    public Task<OperationResult<ReservationResponse>> GetCurrentAcceptedReservationbyUser(Guid userId);
 }
