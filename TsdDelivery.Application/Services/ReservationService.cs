@@ -354,6 +354,9 @@ public class ReservationService : IReservationService
         var result = new OperationResult<ReservationsResponse>();
         try
         {
+            var include = new [] {"Wallet"};
+            // fix cứng Admin 
+            var admin = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Role.RoleName == "ADMIN", include);
             var driver = await _unitOfWork.UserRepository.GetDriverDetail(driverId);
             var claimId = _claimsService.GetCurrentUserId;
             if (!claimId.Equals(driverId))
@@ -433,7 +436,40 @@ public class ReservationService : IReservationService
                     }
                     reservation.ReservationStatus = ReservationStatus.Completed;
                     driver.DriverStatus = DriverStatus.Available;
-                    await _unitOfWork.SaveChangeAsync();
+                    
+                    // add to driver wallet
+                    var priceForDriver =  driver.Wallet!.Balance += reservation.TotallPrice * 70 / 100;
+                    admin.Wallet!.Balance -= priceForDriver;
+
+                    var transactionForAdmin = new Transaction()
+                    {
+                        Price = priceForDriver,
+                        Status = TransactionStatus.success.ToString(),
+                        PaymentMethod = "Thanh-toan-online",
+                        Description = "Thanh toán cho tài xế đã nhận đơn hàng có mã : " + reservation.Id,
+                        WalletId = admin.Wallet!.Id,
+                        ReservationId = reservation.Id,
+                        TransactionType = TransactionType.Minus
+                    };
+                    
+                    var transactionForDriver = new Transaction()
+                    {
+                        Price = priceForDriver,
+                        Status = TransactionStatus.success.ToString(),
+                        PaymentMethod = "Thanh-toan-online",
+                        Description = "Nhận tiền hoàn thành đơn hàng có mã : " + reservation.Id,
+                        WalletId = driver.Wallet!.Id,
+                        ReservationId = reservation.Id,
+                        TransactionType = TransactionType.Plus
+                    };
+
+                    await _unitOfWork.TransactionRepository.AddRangeAsync(new List<Transaction>(){transactionForAdmin,transactionForDriver});
+                    var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                    if (isSuccess)
+                    {
+                        result.AddError(ErrorCode.ServerError,"Can not save");
+                        return result;
+                    }
                     result.Payload = _mapper.Map<ReservationsResponse>(reservation);
                     break;
             }

@@ -177,7 +177,7 @@ public class DashBoardService : IDashBoardService
                 totalPayouts += tr.Price;
             }
 
-            if (tr.TransactionType == TransactionType.Minus && tr.Description.Contains("thanh toán cho tài xế"))
+            if (tr.TransactionType == TransactionType.Minus && tr.Description.Contains("Thanh toán cho tài xế"))
             {
                 totalExpensesForDriver += tr.Price;
             }
