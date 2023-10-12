@@ -422,8 +422,8 @@ public class ReservationService : IReservationService
                     }
                     // after accept the status will be change 
                     driver.DriverStatus = DriverStatus.Busy;                                 
-                    //reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
-                    reservation.ReservationStatus = ReservationStatus.AwaitingDriver;
+                    reservation.ReservationStatus = ReservationStatus.OnTheWayToPickupPoint;
+                    //reservation.ReservationStatus = ReservationStatus.AwaitingDriver;
                     reservation.Driver = driver;
                     await _unitOfWork.SaveChangeAsync();
                     result.Payload = _mapper.Map<ReservationsResponse>(reservation);
