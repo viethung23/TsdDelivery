@@ -77,7 +77,7 @@ public class MomoService : IMomoService
                     var FeHost = cache.StringGet(request.orderId).ToString();
                     result.Payload = FeHost;
                     // goi Background Service Check status va refund sau 5p
-                    var timeToCancel = DateTime.UtcNow.AddMinutes(5);
+                    var timeToCancel = DateTime.UtcNow.AddMinutes(55);
                     BackgroundJob.Schedule<IBackgroundService>(
                         x => x.AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver(request.orderId!,request.transId!.ToString()), timeToCancel);
                     // delete job chờ thanh toán 
