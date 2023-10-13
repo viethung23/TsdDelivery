@@ -74,7 +74,7 @@ public class MomoService : IMomoService
                     await _unitOfWork.SaveChangeAsync();
                     
                     var cache = _redisConnection.GetDatabase();
-                    var FeHost = cache.StringGet(request.orderId);
+                    var FeHost = cache.StringGet(request.orderId).ToString();
                     result.Payload = FeHost;
                     // goi Background Service Check status va refund sau 5p
                     var timeToCancel = DateTime.UtcNow.AddMinutes(5);

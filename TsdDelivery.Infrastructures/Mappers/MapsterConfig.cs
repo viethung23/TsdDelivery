@@ -42,6 +42,9 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.GoodsDto, src => src.Goods)
             .Map(dest => dest.SenderDto, src => src.User);
 
+        config.NewConfig<Reservation, ReservationResponsee>()
+            .Map(dest => dest.GoodsDto, src => src.Goods);
+
         config.NewConfig<User, UserResponse>()
             .Map(dest => dest.RoleName, src => src.Role.RoleName)
             .Map(dest => dest.VehicleDto, src => src.Vehicles.FirstOrDefault())
