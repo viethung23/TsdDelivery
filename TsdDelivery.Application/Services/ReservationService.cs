@@ -80,10 +80,17 @@ public class ReservationService : IReservationService
         {
             try
             {
+                // phải check xem thg request đã đang đặt đơn nào không vì nếu đơn chưa hoàn thành hoặc hủy thì k cho đặt đơn mới 
+                if (await IsUserOrdering(_claimsService.GetCurrentUserId))
+                {
+                    throw new Exception("Bạn đã có đơn hàng trong quá trình xử lý, không thể thực hiện đặt cho tới khi đơn hàng hoàn thành hoặc bị hủy");
+                }
+
                 if (request.IsNow == false && request.PickUpDateTime < _currentTime.GetCurrentTime())
                 {
                     throw new Exception($"pickUpDateTime can not be less than now");
                 }
+
                 var goods = new Goods()
                 {
                     Height = request.GoodsDto.Height,
@@ -100,7 +107,9 @@ public class ReservationService : IReservationService
                     ReciveLocation = request.ReceiveLocation,
                     SendLocation = request.SendLocation,
                     IsNow = request.IsNow,
-                    PickUpDateTime = request.IsNow == true ? _currentTime.GetCurrentTime() : request.PickUpDateTime!.Value,
+                    PickUpDateTime = request.IsNow == true
+                        ? _currentTime.GetCurrentTime()
+                        : request.PickUpDateTime!.Value,
                     Goods = goods,
                     TotallPrice = request.TotalPrice,
                     UserId = _claimsService.GetCurrentUserId,
@@ -127,7 +136,8 @@ public class ReservationService : IReservationService
                 switch (paymentMethod)
                 {
                     case "MOMO":
-                        (bool createMomoLinkResult, string createMessage, string deepLink) = await _momoService.CreateMomoPayment(request, entity);
+                        (bool createMomoLinkResult, string createMessage, string deepLink) =
+                            await _momoService.CreateMomoPayment(request, entity);
                         if (createMomoLinkResult)
                         {
                             result.Payload = new CreateReservationResponse()
@@ -141,10 +151,12 @@ public class ReservationService : IReservationService
                         {
                             throw new Exception(createMessage);
                         }
+
                         break;
-                    
+
                     case "ZALOPAY":
-                        (bool createZaloPayLinkResult, string? createZaloPayMessage) = await _zaloPayService.CreateZaloPayment(request, entity);
+                        (bool createZaloPayLinkResult, string? createZaloPayMessage) =
+                            await _zaloPayService.CreateZaloPayment(request, entity);
                         if (createZaloPayLinkResult)
                         {
                             result.Payload = new CreateReservationResponse()
@@ -158,27 +170,27 @@ public class ReservationService : IReservationService
                         {
                             throw new Exception(createZaloPayMessage);
                         }
+
                         break;
-                    
+
                     case "VNPAY":
-                        
+
                         break;
                 }
-                
+
                 await transaction.CommitAsync();
-                
+
                 // lấy host từ request
-                
                 var requestContext = _httpContextAccessor?.HttpContext?.Request;
-                var host = requestContext.Scheme + "://" + requestContext.Host;
+                var clientHost = requestContext?.Headers["X-Client-Host"].ToString();
                 // gọi cache ra set host và với key là ID reservation
                 IDatabase cache = _redisConnection.GetDatabase();
-                cache.StringSet(entity.Id.ToString(), host,TimeSpan.FromMinutes(20));
-                
+                cache.StringSet(entity.Id.ToString(), clientHost, TimeSpan.FromMinutes(20));
+
                 // goi Background Service Check status sau 5p
                 var timeToCancel = DateTime.UtcNow.AddMinutes(5);
                 string id = BackgroundJob.Schedule<IBackgroundService>(
-                    x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel); 
+                    x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel);
             }
             catch (Exception e)
             {
@@ -479,7 +491,7 @@ public class ReservationService : IReservationService
 
                     await _unitOfWork.TransactionRepository.AddRangeAsync(new List<Transaction>(){transactionForAdmin,transactionForDriver});
                     var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-                    if (isSuccess)
+                    if (!isSuccess)
                     {
                         result.AddError(ErrorCode.ServerError,"Can not save");
                         return result;
@@ -583,9 +595,28 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public Task<OperationResult<ReservationResponse>> GetCurrentAcceptedReservationbyUser(Guid userId)
+    public async Task<OperationResult<ReservationResponse>> GetCurrentAcceptedReservationbyUser(Guid userId)
     {
-        throw new NotImplementedException();
+        var result = new OperationResult<ReservationResponse>();
+        try
+        {
+            var re = await _unitOfWork.ReservationRepository
+                .GetSingleByCondition(x => x.UserId == userId && 
+                                           (x.ReservationStatus == ReservationStatus.OnTheWayToPickupPoint 
+                                            || x.ReservationStatus == ReservationStatus.InDelivery
+                                            || x.ReservationStatus == ReservationStatus.AwaitingPayment
+                                            || x.ReservationStatus == ReservationStatus.AwaitingDriver));
+            result.Payload = _mapper.Map<ReservationResponse>(re);
+        }
+        catch (Exception e)
+        {
+            result.AddError(ErrorCode.NoContent,"khong tim thay don hang");
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
     }
 
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -682,5 +713,23 @@ public class ReservationService : IReservationService
             break;
         }
         return x;
+    }
+
+    private async Task<bool> IsUserOrdering(Guid userId)
+    {
+        try
+        {
+            var re = await _unitOfWork.ReservationRepository
+                .GetSingleByCondition(x => x.UserId == userId &&
+                                           (x.ReservationStatus == ReservationStatus.OnTheWayToPickupPoint
+                                            || x.ReservationStatus == ReservationStatus.InDelivery
+                                            || x.ReservationStatus == ReservationStatus.AwaitingPayment
+                                            || x.ReservationStatus == ReservationStatus.AwaitingDriver));
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+        return true;
     }
 }

@@ -30,6 +30,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     public Task<User> GetDriverDetail(Guid driverId)
     {
        return _dbSet.Where(x => x.Id == driverId)
+            .Include(x => x.Wallet)
             .Include(x => x.Vehicles)
                 .ThenInclude(x => x.VehicleType).FirstAsync();
     }
