@@ -19,7 +19,9 @@ builder.Services.AddCors(options =>
     {
         builder.WithOrigins("http://localhost:3000",
                 "http://localhost:3001",
-                "https://exe202.vercel.app")
+                "https://exe202.vercel.app",
+                "https://www.tsdproject.online",
+                "https://tsdproject.online/")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
