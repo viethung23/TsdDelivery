@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:3001",
                 "https://exe202.vercel.app",
                 "https://www.tsdproject.online",
-                "https://tsdproject.online/")
+                "https://tsdproject.online")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -72,5 +72,5 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 });
 
 app.Run();
-RecurringJob.AddOrUpdate<IBackgroundService>(x => x.AutoResetCacheUserLoginCount(),Cron.Daily(17, 0));
+//RecurringJob.AddOrUpdate<IBackgroundService>(x => x.AutoResetCacheUserLoginCount(),Cron.Daily(17, 0));
 public partial class Program { }
