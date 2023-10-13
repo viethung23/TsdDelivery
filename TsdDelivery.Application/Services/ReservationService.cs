@@ -464,7 +464,8 @@ public class ReservationService : IReservationService
                     driver.DriverStatus = DriverStatus.Available;
                     
                     // add to driver wallet
-                    var priceForDriver =  driver.Wallet!.Balance += reservation.TotallPrice * 70 / 100;
+                    var priceForDriver = reservation.TotallPrice * 0.7M;
+                    driver.Wallet!.Balance += priceForDriver;
                     admin.Wallet!.Balance -= priceForDriver;
 
                     var transactionForAdmin = new Transaction()
