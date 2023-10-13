@@ -601,12 +601,13 @@ public class ReservationService : IReservationService
         var result = new OperationResult<ReservationResponsee>();
         try
         {
+            var include = new[] { "Driver" };
             var re = await _unitOfWork.ReservationRepository
                 .GetSingleByCondition(x => x.UserId == userId && 
                                            (x.ReservationStatus == ReservationStatus.OnTheWayToPickupPoint 
                                             || x.ReservationStatus == ReservationStatus.InDelivery
                                             || x.ReservationStatus == ReservationStatus.AwaitingPayment
-                                            || x.ReservationStatus == ReservationStatus.AwaitingDriver));
+                                            || x.ReservationStatus == ReservationStatus.AwaitingDriver),include);
             var dto = _mapper.Map<ReservationResponsee>(re);
             if (re.ReservationStatus == ReservationStatus.AwaitingPayment)
             {

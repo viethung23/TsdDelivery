@@ -1,4 +1,5 @@
 using TsdDelivery.Application.Models.Reservation.DTO;
+using TsdDelivery.Application.Models.User.DTO;
 
 namespace TsdDelivery.Application.Models.Reservation.Response;
 
@@ -15,5 +16,6 @@ public class ReservationResponsee
     public DateTime PickUpDateTime { get; set; }
     public decimal TotallPrice { get; set; }
     public string ReservationStatus { get; set; }
+    public DriverDto? DriverDto { get; set; }
     public CreateReservationResponse? LinkPayment { get; set; }
 }
