@@ -2,6 +2,7 @@ using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
@@ -76,6 +77,7 @@ public class ReservationService : IReservationService
     public async Task<OperationResult<CreateReservationResponse>> CreateReservation(CreateReservationRequest request)
     {
         var result = new OperationResult<CreateReservationResponse>();
+        CreateReservationResponse createReservationResponse = new CreateReservationResponse();
         using (var transaction = await _unitOfWork.BeginTransactionAsync())
         {
             try
@@ -140,12 +142,10 @@ public class ReservationService : IReservationService
                             await _momoService.CreateMomoPayment(request, entity);
                         if (createMomoLinkResult)
                         {
-                            result.Payload = new CreateReservationResponse()
-                            {
-                                Id = entity.Id,
-                                PaymentUrl = createMessage,
-                                deeplink = deepLink
-                            };
+                            createReservationResponse.Id = entity.Id;
+                            createReservationResponse.PaymentUrl = createMessage;
+                            createReservationResponse.deeplink = deepLink;
+                            result.Payload = createReservationResponse;
                         }
                         else
                         {
@@ -159,12 +159,10 @@ public class ReservationService : IReservationService
                             await _zaloPayService.CreateZaloPayment(request, entity);
                         if (createZaloPayLinkResult)
                         {
-                            result.Payload = new CreateReservationResponse()
-                            {
-                                Id = entity.Id,
-                                PaymentUrl = createZaloPayMessage,
-                                deeplink = null
-                            };
+                            createReservationResponse.Id = entity.Id;
+                            createReservationResponse.PaymentUrl = createZaloPayMessage;
+                            createReservationResponse.deeplink = null;
+                            result.Payload = createReservationResponse;
                         }
                         else
                         {
@@ -186,6 +184,8 @@ public class ReservationService : IReservationService
                 // gọi cache ra set host và với key là ID reservation
                 IDatabase cache = _redisConnection.GetDatabase();
                 cache.StringSet(entity.Id.ToString(), clientHost, TimeSpan.FromMinutes(20));
+                var json = JsonConvert.SerializeObject(createReservationResponse);
+                cache.StringSet("Payment_" + entity.Id, json,TimeSpan.FromMinutes(10));
 
                 // goi Background Service Check status sau 5p
                 var timeToCancel = DateTime.UtcNow.AddMinutes(5);
@@ -595,9 +595,9 @@ public class ReservationService : IReservationService
         return result;
     }
 
-    public async Task<OperationResult<ReservationResponse>> GetCurrentAcceptedReservationbyUser(Guid userId)
+    public async Task<OperationResult<ReservationResponsee>> GetCurrentAcceptedReservationbyUser(Guid userId)
     {
-        var result = new OperationResult<ReservationResponse>();
+        var result = new OperationResult<ReservationResponsee>();
         try
         {
             var re = await _unitOfWork.ReservationRepository
@@ -606,7 +606,16 @@ public class ReservationService : IReservationService
                                             || x.ReservationStatus == ReservationStatus.InDelivery
                                             || x.ReservationStatus == ReservationStatus.AwaitingPayment
                                             || x.ReservationStatus == ReservationStatus.AwaitingDriver));
-            result.Payload = _mapper.Map<ReservationResponse>(re);
+            var dto = _mapper.Map<ReservationResponsee>(re);
+            if (re.ReservationStatus == ReservationStatus.AwaitingPayment)
+            {
+                // lấy cái link lưu trong redis ra để show lên
+                var cache = _redisConnection.GetDatabase();
+                var paymentLink = cache.StringGet("Payment_"+re.Id).ToString();
+                var paymentObj = JsonConvert.DeserializeObject<CreateReservationResponse>(paymentLink);
+                dto.LinkPayment = paymentObj;
+            }
+            result.Payload = dto;
         }
         catch (Exception e)
         {
