@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<IMapService, MapService>();
         services.AddScoped<IDashBoardService, DashBoardService>();
+        services.AddTransient<IMailService, MailService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(databaseConnection));

@@ -16,4 +16,6 @@ public interface IUserService
     public Task<OperationResult<UserResponse>> GetUserById(Guid id);
     public Task<OperationResult<UserResponse>> DisableUser(Guid userId);
     public Task<OperationResult<UserResponse>> ActiveUser(Guid userId);
+    public Task<OperationResult<UserResponse>> ForgotPassword(string email);
+    public Task<OperationResult<UserResponse>> ResetPassword(ResetPasswordRequest request);
 }

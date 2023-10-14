@@ -9,5 +9,6 @@ public class AppConfiguration
     public MomoConfig MomoConfig { get; set; }
     public ZaloPayConfig ZaloPayConfig { get; set; }
     public Tomtom Tomtom { get; set; }
+    public MailConfig MailConfig { get; set; }
 }
 

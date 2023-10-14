@@ -60,5 +60,11 @@
     <None Remove="Properties\PublishProfiles\tsdlinuxserverapi - Zip Deploy.pubxml" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Resources\forgotPassword.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 
 </Project>
