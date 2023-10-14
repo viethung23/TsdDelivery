@@ -5,6 +5,7 @@ using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Models.Mail;
 using TsdDelivery.Application.Models.User.Request;
 using TsdDelivery.Application.Models.User.Response;
 using TsdDelivery.Application.Utils;
@@ -23,11 +24,14 @@ public class UserService : IUserService
     private readonly IMapper _mapper;
     private readonly IDistributedCache _cache;
     private readonly IConnectionMultiplexer _redisConnection;
+    private readonly IMailService _mailService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     
     public UserService(IUnitOfWork unitOfWork, ICurrentTime currentTime
         ,IBlobStorageAzureService blobStorageAzureService
         ,AppConfiguration appConfiguration,IClaimsService claimsService
-        ,IMapper mapper,IConnectionMultiplexer redisConnection)
+        ,IMapper mapper,IConnectionMultiplexer redisConnection
+        ,IMailService mailService,IHttpContextAccessor httpContextAccessor)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
@@ -36,6 +40,8 @@ public class UserService : IUserService
         _claimsService = claimsService;
         _mapper = mapper;
         _redisConnection = redisConnection;
+        _mailService = mailService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
@@ -344,6 +350,82 @@ public class UserService : IUserService
             if (!isSuccess)
             {
                 result.AddError(ErrorCode.ServerError, $"Can not Active User with id: {userId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserResponse>> ForgotPassword(string email)
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Email == email);
+            var requestContext = _httpContextAccessor?.HttpContext?.Request;
+            var clientHost = requestContext?.Headers["X-Client-Host"].ToString();
+            
+            IDatabase cache = _redisConnection.GetDatabase();
+            var key = StringUtils.RandomString();
+            cache.StringSet(key, user.Id.ToString(), TimeSpan.FromMinutes(20));
+            string body = await _mailService.GetEmailTemplateForgotPassword("forgotPassword",clientHost,key, user);
+            MailData mailData = new MailData(
+                new List<string> { email },
+                "WELCOME TO TSD PROJECT", 
+                body
+            );
+            bool sendResult = await _mailService.SendAsync(mailData, new CancellationToken());
+            if (!sendResult)
+            {
+                result.AddError(ErrorCode.ServerError,"Send Email fail");
+                return result;
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            result.AddUnknownError($"Not found email:[{email}]");
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserResponse>> ResetPassword(ResetPasswordRequest request)
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            if (request.Password != request.ConfirmPassword)
+            {
+                result.AddError(ErrorCode.ServerError, "password and confirmPassword not match");
+                return result;
+            }
+            IDatabase cache = _redisConnection.GetDatabase();
+            var id = cache.StringGet(request.Code);
+            if (!id.HasValue)
+            {
+                result.AddError(ErrorCode.ServerError, "The code does not exist or has expired");
+                return result;
+            }
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(Guid.Parse(id.ToString()));
+            user.PasswordHash = request.Password;
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (isSuccess)
+            {
+                cache.KeyDelete(request.Code);
             }
         }
         catch (Exception ex)

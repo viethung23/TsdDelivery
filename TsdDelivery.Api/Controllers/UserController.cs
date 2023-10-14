@@ -120,4 +120,18 @@ public class UserController : BaseController
         var response = await _userService.ActiveUser(userId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok($"Active Success User with id = {userId}");
     }
+    
+    [HttpPost]
+    public async Task<IActionResult> ForgotPassword(string email)
+    {
+        var response = await _userService.ForgotPassword(email);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Success");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        var response = await _userService.ResetPassword(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok("Success");
+    }
 }
