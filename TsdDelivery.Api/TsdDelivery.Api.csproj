@@ -61,9 +61,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Resources\forgotPassword.cshtml">
+    <Content Remove="Resources\forgotPassword.cshtml" />
+    <EmbeddedResource Include="Resources\forgotPassword.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
   </ItemGroup>
 
 
