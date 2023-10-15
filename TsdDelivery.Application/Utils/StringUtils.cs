@@ -8,9 +8,14 @@ public static class StringUtils
     //public static bool Verify(string password, string passwordHash) => BCrypt.Net.BCrypt.Verify(password, passwordHash);
     public static string RandomString()
     {
-        var random = new byte[32];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(random);
-        return Convert.ToBase64String(random);
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var random = new char[32];
+        var randomNumber = new Random();
+    
+        for (int i = 0; i < random.Length; i++) 
+        {
+            random[i] = chars[randomNumber.Next(chars.Length)];
+        }
+        return new String(random);
     }
 }
