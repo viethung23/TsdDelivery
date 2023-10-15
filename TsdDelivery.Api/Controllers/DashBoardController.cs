@@ -32,4 +32,11 @@ public class DashBoardController : BaseController
         var response = await _dashBoardService.GetUserLoginCount(from,to);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetVehicleByVehicleType()
+    {
+        var response = await _dashBoardService.GetVehicleByVehicleType();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

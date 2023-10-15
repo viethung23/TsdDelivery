@@ -161,6 +161,36 @@ public class DashBoardService : IDashBoardService
         return result;
     }
 
+    public async Task<OperationResult<List<VehicleCountResponse>>> GetVehicleByVehicleType()
+    {
+        var result = new OperationResult<List<VehicleCountResponse>>();
+        try
+        {
+            var includes = new[] { "Vehicles" };
+            var vehicleTypes = await _unitOfWork.VehicleTypeReposiory.GetAllAsync(includes);
+            var list = new List<VehicleCountResponse>();
+            foreach (var vehicleType in vehicleTypes)
+            {
+                var vehicleCount = new VehicleCountResponse()
+                {
+                    VehicleType = vehicleType.VehicleTypeName,
+                    Quantity = vehicleType.Vehicles.Count
+                };
+                list.Add(vehicleCount);
+            }
+            result.Payload = list;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
     private (double totalRevenueReceived, double totalPayouts, double totalExpensesForDriver) CalculateTransactionsStatistics(List<Transaction> trans)
     {
         var totalRevenueReceived = 0M;
