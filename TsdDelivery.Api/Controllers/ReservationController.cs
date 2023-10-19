@@ -140,6 +140,18 @@ public class ReservationController : BaseController
         var response = await _reservationService.GetReservationHistoryDetailForUser(reservationId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// Api for Driver
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Authorize(Policy = "RequireDriverRole")]
+    public async Task<IActionResult> GetReservationHistoryForDriver()
+    {
+        var response = await _reservationService.GetReservationHistoryForDriver();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     /// <summary>
     /// Api for Driver

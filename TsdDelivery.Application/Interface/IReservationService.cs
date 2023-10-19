@@ -15,6 +15,7 @@ public interface IReservationService
     public Task<OperationResult<ReservationAwaitingDriverDetailResponse>> GetAwaitingDriverReservationDetail(Guid reservationId,CurrentCoordinates currentCoordinates,DestinationCoordinates destinationCoordinates);
     public Task<OperationResult<ReservationsResponse>> DriverReservationAction(Guid driverId, Guid reservationId, DriverReservationAction action);
     public Task<OperationResult<List<ReservationHistoryResponse>>> GetReservationHistoryForUser();
+    public Task<OperationResult<List<ReservationHistoryResponse>>> GetReservationHistoryForDriver();
     public Task<OperationResult<ReservationHistoryDetailResponse>> GetReservationHistoryDetailForUser(Guid reservationId);
     public Task<OperationResult<ReservationsResponse>> GetCurrentAcceptedReservationbyDriver(Guid dirverId);
     public Task<OperationResult<ReservationResponsee>> GetCurrentAcceptedReservationbyUser(Guid userId);
