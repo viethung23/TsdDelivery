@@ -35,4 +35,14 @@ public class ReservationRepository : GenericRepository<Reservation>,IReservation
             .ThenInclude(x => x.VehicleType).ToListAsync();
         return reservation;
     }
+
+    public Task<List<Reservation>> GetReservationHistoryForDriver(Guid driverId)
+    {
+        var reservation = _dbSet.Where(x => x.DriverId == driverId)
+            .OrderByDescending(x => x.CreationDate)
+            .Include(x => x.reservationDetails)
+            .ThenInclude(x => x.Service)
+            .ThenInclude(x => x.VehicleType).ToListAsync();
+        return reservation;
+    }
 }

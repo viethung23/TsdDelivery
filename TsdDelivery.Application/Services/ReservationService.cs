@@ -536,6 +536,27 @@ public class ReservationService : IReservationService
         return result;
     }
 
+    public async Task<OperationResult<List<ReservationHistoryResponse>>> GetReservationHistoryForDriver()
+    {
+        var result = new OperationResult<List<ReservationHistoryResponse>>();
+        try
+        {
+            var loggedInUserId = _claimsService.GetCurrentUserId;
+            var reHistory = await _unitOfWork.ReservationRepository.GetReservationHistoryForDriver(loggedInUserId);
+            result.Payload = _mapper.Map<List<ReservationHistoryResponse>>(reHistory);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+
+        return result;
+    }
+
     public async Task<OperationResult<ReservationHistoryDetailResponse>> GetReservationHistoryDetailForUser(Guid reservationId)
     {
         var result = new OperationResult<ReservationHistoryDetailResponse>();
