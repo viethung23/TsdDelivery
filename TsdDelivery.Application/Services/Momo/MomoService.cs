@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
+using TsdDelivery.Application.Interface.V1;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.Reservation.Request;
 using TsdDelivery.Application.Repositories;

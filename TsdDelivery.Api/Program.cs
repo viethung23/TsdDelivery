@@ -37,12 +37,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("v1/swagger.json", "TsdDelivery API V1");
+        c.SwaggerEndpoint("v2/swagger.json", "TsdDelivery API V2");
     });
 }
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("v1/swagger.json", "TsdDelivery API V1");
+    c.SwaggerEndpoint("v2/swagger.json", "TsdDelivery API V2");
 });
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -72,5 +74,4 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 });
 
 app.Run();
-//RecurringJob.AddOrUpdate<IBackgroundService>(x => x.AutoResetCacheUserLoginCount(),Cron.Daily(17, 0));
 public partial class Program { }

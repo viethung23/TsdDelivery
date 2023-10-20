@@ -1,15 +1,15 @@
 ﻿using System.Reflection;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using TsdDelivery.Api.Filters;
-using TsdDelivery.Application.Interface;
-using TsdDelivery.Application.Services;
-using Swashbuckle.AspNetCore.Filters;
 using TsdDelivery.Api.Middlewares;
 using TsdDelivery.Application.Commons;
+using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Services.V1;
 
 namespace TsdDelivery.Api;
 
@@ -22,6 +22,19 @@ public static class DependencyInjection
             config.Filters.Add(typeof(TsdDeliveryExceptionHandler));
         });
         services.AddEndpointsApiExplorer();
+        services.AddApiVersioning(options => 
+        {
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.ReportApiVersions = true; 
+        });
+
+        services.AddVersionedApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
+        //------------------------------------------------------------------------------------
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareHandler>();
         //----------------------------------------------------------------------------------------------
         //for appear summary
@@ -30,6 +43,19 @@ public static class DependencyInjection
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Version = "v1",
+                Title = "TsdDelivery API",
+                Description = "An ASP.NET Core Web API for EXE02 Project",
+                //TermsOfService = new Uri("https://example.com/terms"),
+                Contact = new OpenApiContact
+                {
+                    Name = "VietHung",
+                    Url = new Uri("https://example.com/contact")
+                }
+            });
+            
+            options.SwaggerDoc("v2", new OpenApiInfo
+            {
+                Version = "v2",
                 Title = "TsdDelivery API",
                 Description = "An ASP.NET Core Web API for EXE02 Project",
                 //TermsOfService = new Uri("https://example.com/terms"),
@@ -70,6 +96,8 @@ public static class DependencyInjection
             var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
+        
+        
         //----------------------------------------------------------------------
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
