@@ -7,6 +7,7 @@ public class ReservationHistoryResponse
     public string ReciveLocation { get; set; }
     public string ReservationStatus { get; set; }
     public string GoodsName { get; set; }
+    public decimal TotallPrice { get; set; }
     public string VehicleType { get; set; }
     public DateTime CreationDate { get; set; }
 }
