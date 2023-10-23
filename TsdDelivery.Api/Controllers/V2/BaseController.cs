@@ -4,10 +4,9 @@ using TsdDelivery.Application.Models;
 
 namespace TsdDelivery.Api.Controllers.V2;
 
+
 [ApiController]
-[Route("api/v{version:apiVersion}/[controller]")]
-[ApiVersion("2.0")]
-public class BaseControllerV2 : ControllerBase
+public class BaseController : ControllerBase
 {
     protected IActionResult HandleErrorResponse(List<Error> errors)
     {
