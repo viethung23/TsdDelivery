@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Api.Middlewares;
 using TsdDelivery.Application.Commons;
@@ -22,18 +21,17 @@ public static class DependencyInjection
             config.Filters.Add(typeof(TsdDeliveryExceptionHandler));
         });
         services.AddEndpointsApiExplorer();
-        services.AddApiVersioning(options => 
+        services.AddApiVersioning(options =>
         {
-            options.AssumeDefaultVersionWhenUnspecified = true;
-            options.DefaultApiVersion = new ApiVersion(1, 0);
-            options.ReportApiVersions = true; 
+            options.DefaultApiVersion = new ApiVersion(1, 0); // Default API version
+            options.AssumeDefaultVersionWhenUnspecified = true; // Không xác định version sẽ lấy default
+            options.ReportApiVersions = true; // Trả về metadata về API versions
         });
-
-        services.AddVersionedApiExplorer(options =>
+        services.AddVersionedApiExplorer(setup =>
         {
-            options.GroupNameFormat = "'v'VVV";
-            options.SubstituteApiVersionInUrl = true;
-        });
+            setup.GroupNameFormat = "'v'VVV";
+            setup.SubstituteApiVersionInUrl = true;
+        });    
         //------------------------------------------------------------------------------------
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareHandler>();
         //----------------------------------------------------------------------------------------------

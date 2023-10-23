@@ -5,8 +5,9 @@ using TsdDelivery.Application.Models;
 
 namespace TsdDelivery.Api.Controllers.V1;
 
-[Route("api/[controller]/[action]")]
+[Route("api/[controller]/[action]")] 
 [ApiController]
+
 public class BaseController : ControllerBase
 {
     protected IActionResult HandleErrorResponse(List<Error> errors)

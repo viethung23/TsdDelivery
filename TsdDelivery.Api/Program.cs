@@ -1,15 +1,27 @@
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 using TsdDelivery.Api;
 using TsdDelivery.Api.Middlewares;
 using TsdDelivery.Application.Commons;
-using TsdDelivery.Application.Interface;
 using TsdDelivery.Infrastructures;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var configuration = builder.Configuration.Get<AppConfiguration>();
+var keyVaultUrl = builder.Configuration.GetSection("KeyVault:KeyVaultUrl");
+var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
+var keyVaultClientSecret = builder.Configuration.GetSection("KeyVault:ClientSecret");
+var keyVaultDirectoryId = builder.Configuration.GetSection("KeyVault:DirectoryId");
 
+var credential = new ClientSecretCredential(keyVaultDirectoryId.Value!, keyVaultClientId.Value!, keyVaultClientSecret.Value!);
+builder.Configuration.AddAzureKeyVault(keyVaultUrl.Value!, keyVaultClientId.Value!, keyVaultClientSecret.Value!, new DefaultKeyVaultSecretManager());
+
+// if want to config more 
+//var client = new SecretClient(new Uri(keyVaultUrl.Value!.ToString()), credential);
+
+var configuration = builder.Configuration.Get<AppConfiguration>();
 builder.Services.AddInfrastructuresService(configuration.DatabaseConnection,configuration.RedisConnection);
 builder.Services.AddWebAPIService(configuration.JwtSettings);
 builder.Services.AddSingleton(configuration);
@@ -36,15 +48,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("v1/swagger.json", "TsdDelivery API V1");
-        c.SwaggerEndpoint("v2/swagger.json", "TsdDelivery API V2");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+        c.SwaggerEndpoint("/swagger/v2/swagger.json", "API V2");
     });
 }
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("v1/swagger.json", "TsdDelivery API V1");
-    c.SwaggerEndpoint("v2/swagger.json", "TsdDelivery API V2");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+    c.SwaggerEndpoint("/swagger/v2/swagger.json", "API V2");
 });
 
 app.UseMiddleware<GlobalExceptionMiddleware>();

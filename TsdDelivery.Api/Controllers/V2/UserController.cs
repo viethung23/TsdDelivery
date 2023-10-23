@@ -3,10 +3,13 @@ using TsdDelivery.Application.Interface.V1;
 
 namespace TsdDelivery.Api.Controllers.V2;
 
-public class UserControllerV2 : BaseControllerV2
+[Route("api/v{version:apiVersion}/[controller]/[action]")] 
+[ApiController]
+[ApiVersion("2.0")]
+public class UserController : BaseController
 {
     private readonly IUserService _userService;
-    public UserControllerV2(IUserService userService)
+    public UserController(IUserService userService)
     {
         _userService = userService;
     }

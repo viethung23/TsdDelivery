@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Api.Filters;
 using TsdDelivery.Application.Interface;
@@ -16,7 +15,7 @@ public class RoleController : BaseController
     {
         _roleService = roleService;
     }
-
+    
     [HttpGet]
     public async Task<IActionResult> GetAllRoles()
     {
