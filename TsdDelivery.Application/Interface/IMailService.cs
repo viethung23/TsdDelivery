@@ -1,7 +1,7 @@
 using TsdDelivery.Application.Models.Mail;
 using TsdDelivery.Domain.Entities;
 
-namespace TsdDelivery.Application.Interface.V1;
+namespace TsdDelivery.Application.Interface;
 
 public interface IMailService
 {

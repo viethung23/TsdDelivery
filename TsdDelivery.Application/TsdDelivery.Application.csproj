@@ -33,9 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interface\V2\" />
     <Folder Include="Models\DashBoard\Request\" />
-    <Folder Include="Services\V2\" />
     <Folder Include="Services\VnPay\Response\" />
     <ProjectReference Include="..\TsdDelivery.Domain\TsdDelivery.Domain.csproj" />
     <Folder Include="Models\Transaction\Request\" />

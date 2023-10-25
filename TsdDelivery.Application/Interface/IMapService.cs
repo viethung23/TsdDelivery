@@ -1,6 +1,6 @@
 using TsdDelivery.Application.Models.Coordinates;
 
-namespace TsdDelivery.Application.Interface.V1;
+namespace TsdDelivery.Application.Interface;
 
 public interface IMapService
 {

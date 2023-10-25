@@ -1,23 +1,27 @@
 using StackExchange.Redis;
-using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.DashBoard.Response;
+using TsdDelivery.Application.Models.Reservation.Response;
 using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services;
 
 public class DashBoardService : IDashBoardService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConnectionMultiplexer _redisConnection;
     private readonly ICurrentTime _currentTime;
-    public DashBoardService(IUnitOfWork unitOfWork,IConnectionMultiplexer connectionMultiplexer,ICurrentTime currentTime)
+
+    public DashBoardService(IUnitOfWork unitOfWork, IConnectionMultiplexer connectionMultiplexer,
+        ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _redisConnection = connectionMultiplexer;
         _currentTime = currentTime;
     }
+
     public async Task<OperationResult<UserCountResult>> GetCountPercentUser()
     {
         var result = new OperationResult<UserCountResult>();
@@ -28,7 +32,7 @@ public class DashBoardService : IDashBoardService
         var userCount = await _unitOfWork.UserRepository.GetUserCountByRole(userRoleId);
         var driverCount = await _unitOfWork.UserRepository.GetUserCountByRole(driverRoleId);
         var adminCount = await _unitOfWork.UserRepository.GetUserCountByRole(adminRoleId);
-        
+
         var userPercent = (double)userCount / total * 100;
         var driverPercent = (double)driverCount / total * 100;
         var adminPercent = (double)adminCount / total * 100;
@@ -52,8 +56,9 @@ public class DashBoardService : IDashBoardService
         {
             var adminId = new Guid("5f00b441-a792-4d46-eece-08dbbe590f42");
             var include = new[] { "Transactions" };
-            var wallet = await _unitOfWork.WalletRepository.GetSingleByCondition(x => x.UserId == adminId,include);
-            var trans = wallet.Transactions!.Where(x => x.CreationDate >= from && x.CreationDate <= to.AddDays(1)).ToList();
+            var wallet = await _unitOfWork.WalletRepository.GetSingleByCondition(x => x.UserId == adminId, include);
+            var trans = wallet.Transactions!.Where(x => x.CreationDate >= from && x.CreationDate <= to.AddDays(1))
+                .ToList();
             // xu ly data
             var test = CalculateTransactionsStatistics(trans);
             var transByDate = trans.GroupBy(x => x.CreationDate.Date).ToDictionary(x => x.Key, g => g.ToList());
@@ -68,7 +73,7 @@ public class DashBoardService : IDashBoardService
                     TotalPayouts = test2.totalPayouts,
                     TotalExpensesForDriver = test2.totalExpensesForDriver
                 };
-  
+
                 listDateGroup.Add(group);
             }
 
@@ -89,6 +94,7 @@ public class DashBoardService : IDashBoardService
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
@@ -100,7 +106,7 @@ public class DashBoardService : IDashBoardService
             /*IDatabase redisDb = _redisConnection.GetDatabase();
             string key = "user_logins_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
             result.Payload = redisDb.SetLength(key);#1#
-            
+
             IDatabase redisDb = _redisConnection.GetDatabase();
             string loginCountKey = "login_count_" + DateTime.UtcNow.AddHours(7).ToString("yyyyMMdd");
             result.Payload = (long)redisDb.StringGet(loginCountKey);
@@ -115,7 +121,7 @@ public class DashBoardService : IDashBoardService
         }
         return result;
     }*/
-    
+
     public async Task<OperationResult<UserLoginResponse>> GetUserLoginCount(DateTime from, DateTime to)
     {
         var result = new OperationResult<UserLoginResponse>();
@@ -123,11 +129,14 @@ public class DashBoardService : IDashBoardService
         {
             if (to > _currentTime.GetCurrentTime())
             {
-                result.AddError(ErrorCode.ServerError,"'to' cannot be greater than the current time");
+                result.AddError(ErrorCode.ServerError, "'to' cannot be greater than the current time");
                 return result;
             }
+
             var includes = new[] { "loggedInUser" };
-            var userLogins = await _unitOfWork.UserLoginRepository.GetMulti(x => x.CreationDate >= from && x.CreationDate <= to.AddDays(1),includes);
+            var userLogins =
+                await _unitOfWork.UserLoginRepository.GetMulti(
+                    x => x.CreationDate >= from && x.CreationDate <= to.AddDays(1), includes);
             var totalUserlogin = CountUserLogin(userLogins);
             // xu ly data
             var userLoginDay = userLogins.GroupBy(x => x.CreationDate.Date).ToDictionary(x => x.Key, g => g.ToList());
@@ -158,6 +167,7 @@ public class DashBoardService : IDashBoardService
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
@@ -178,6 +188,7 @@ public class DashBoardService : IDashBoardService
                 };
                 list.Add(vehicleCount);
             }
+
             result.Payload = list;
         }
         catch (Exception e)
@@ -188,10 +199,81 @@ public class DashBoardService : IDashBoardService
         {
             _unitOfWork.Dispose();
         }
+
         return result;
     }
 
-    private (double totalRevenueReceived, double totalPayouts, double totalExpensesForDriver) CalculateTransactionsStatistics(List<Transaction> trans)
+    public async Task<OperationResult<TotalReservationResponse>> GetTotalReservationByDay(DateTime from, DateTime to)
+    {
+        var result = new OperationResult<TotalReservationResponse>();
+        try
+        {
+            var re = await _unitOfWork.ReservationRepository.GetMulti(x =>
+                x.CreationDate >= from && x.CreationDate <= to.AddDays(1) &&
+                x.ReservationStatus == ReservationStatus.Completed);
+            var count = re.Count;
+            var reGroup = re.GroupBy(x => x.CreationDate.Date).ToDictionary(x => x.Key, g => g.ToList());
+            var list = new List<TotalReservationDayByDayResponse>();
+            foreach (var r in reGroup)
+            {
+                var totalDayByDay = new TotalReservationDayByDayResponse()
+                {
+                    Date = r.Key,
+                    TotalReservations = r.Value.Count
+                };
+                list.Add(totalDayByDay);
+            }
+
+            var tt = new TotalReservationResponse()
+            {
+                TotalReservations = count,
+                TotalReservationDayByDayResponses = list
+            };
+            result.Payload = tt;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<dynamic>> GetTotalReservationByVehicleType()
+    {
+        var result = new OperationResult<dynamic>();
+        try
+        {
+            // to do here 
+            var re = await _unitOfWork.ReservationRepository.GetCompleteReservations();
+            var reGroup = re
+                .GroupBy(r => r.reservationDetails.Select(rd => rd.Service.VehicleType.VehicleTypeName).First())
+                .Select(g => new
+                {
+                    VehicleTypeName = g.Key,
+                    TotalComplete = g.ToList().Count
+                })
+                .ToList();
+            result.Payload = reGroup;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+
+        return result;
+    }
+
+    private (double totalRevenueReceived, double totalPayouts, double totalExpensesForDriver)
+        CalculateTransactionsStatistics(List<Transaction> trans)
     {
         var totalRevenueReceived = 0M;
         var totalPayouts = 0M;
@@ -202,6 +284,7 @@ public class DashBoardService : IDashBoardService
             {
                 totalRevenueReceived += tr.Price;
             }
+
             if (tr.TransactionType == TransactionType.Minus)
             {
                 totalPayouts += tr.Price;
@@ -212,6 +295,7 @@ public class DashBoardService : IDashBoardService
                 totalExpensesForDriver += tr.Price;
             }
         }
+
         return ((double)totalRevenueReceived, (double)totalPayouts, (double)totalExpensesForDriver);
     }
 

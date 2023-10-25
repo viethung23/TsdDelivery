@@ -3,6 +3,7 @@ using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Interface.V1;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Domain.Entities;
+using TsdDelivery.Domain.Entities.Enums;
 
 namespace TsdDelivery.Infrastructures.Repositories;
 
@@ -45,5 +46,15 @@ public class ReservationRepository : GenericRepository<Reservation>,IReservation
             .ThenInclude(x => x.Service)
             .ThenInclude(x => x.VehicleType).ToListAsync();
         return reservation;
+    }
+
+    public Task<List<Reservation>> GetCompleteReservations()
+    {
+        var reservations = _dbSet.Include(x => x.reservationDetails)
+            .ThenInclude(x => x.Service)
+            .ThenInclude(x => x.VehicleType)
+            .Where(x => x.ReservationStatus == ReservationStatus.Completed)
+            .ToListAsync();
+        return reservations;
     }
 }

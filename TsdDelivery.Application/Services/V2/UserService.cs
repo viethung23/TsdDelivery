@@ -1,20 +1,23 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
-using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Interface.V2;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.Mail;
+using TsdDelivery.Application.Models.Transaction.Response;
+using TsdDelivery.Application.Models.User.DTO;
 using TsdDelivery.Application.Models.User.Request;
 using TsdDelivery.Application.Models.User.Response;
+using TsdDelivery.Application.Models.Vehicle.DTO;
 using TsdDelivery.Application.Models.Wallet.Response;
 using TsdDelivery.Application.Utils;
 using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services.V2;
 
 public class UserService : IUserService
 {
@@ -45,8 +48,8 @@ public class UserService : IUserService
         _mailService = mailService;
         _httpContextAccessor = httpContextAccessor;
     }
-
-    public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
+    
+    public async Task<OperationResult<List<UserResponse>>> GetUsers()
     {
         var result = new OperationResult<List<UserResponse>>();
         try
@@ -68,78 +71,98 @@ public class UserService : IUserService
         }
         return result;
     }
-    
-    public async Task<OperationResult<User>> Register(UserCreateUpdate command)
-    {
-        var result = new OperationResult<User>();
-        using (var transaction = await _unitOfWork.BeginTransactionAsync())
-        {
-            try
-            {
-                var users = await _unitOfWork.UserRepository.GetUserByPhoneNumber(command.PhoneNumber);
-                var role = await _unitOfWork.RoleRepository.GetByIdAsync(Guid.Parse(command.RoleId));
-                var entity = new User();
-                if (users.Count() > 0)
-                {
-                    if(users.Any(x =>x.RoleId.ToString() == command.RoleId))
-                    {
-                        result.AddError(ErrorCode.ValidationError, string.Format("Account already exists with phone : [{0}] and role : [{1}]", command.PhoneNumber,role.RoleName));
-                        return result;
-                    }
-                    else
-                    {
-                        entity.Email = command.Email;
-                        entity.FullName = command.FullName;
-                        entity.PhoneNumber = command.PhoneNumber;
-                        entity.PasswordHash = command.Password;
-                        entity.Role = role;
-                    }
-                }
-                else
-                {
-                    entity.Email = command.Email;
-                    entity.FullName = command.FullName;
-                    entity.PhoneNumber = command.PhoneNumber;
-                    entity.PasswordHash = command.Password;
-                    entity.Role = role;
-                }
-                if (role!.RoleName.ToUpper() == "DRIVER")
-                {
-                    entity.DriverStatus = DriverStatus.Available;
-                }            
-                var u = await _unitOfWork.UserRepository.AddAsync(entity);
-                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-                if (!isSuccess)
-                {
-                    result.AddUnknownError("Can not save to database");
-                }
-                if (u.Role.RoleName == "DRIVER")
-                {
-                    var wallet = new Wallet()
-                    {
-                        Balance = 0M,
-                        Debt = 0M,
-                        User = u
-                    };
-                    var w = await _unitOfWork.WalletRepository.AddAsync(wallet);
-                    await _unitOfWork.SaveChangeAsync();
-                }
 
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                result.AddUnknownError(ex.Message);
-                await transaction.RollbackAsync();
-            }
-            finally
-            {
-                _unitOfWork.Dispose();
-            }
-            return result;
-        }
+    public async Task<OperationResult<UserResponse>> Register(UserCreateUpdate command)
+    {
+         var result = new OperationResult<UserResponse>();
+         using (var transaction = await _unitOfWork.BeginTransactionAsync())
+         {
+             try
+             {
+                 var users = await _unitOfWork.UserRepository.GetUserByPhoneNumber(command.PhoneNumber);
+                 var role = await _unitOfWork.RoleRepository.GetByIdAsync(Guid.Parse(command.RoleId));
+                 var entity = new User();
+                 if (users.Count() > 0)
+                 {
+                     if (users.Any(x => x.RoleId.ToString() == command.RoleId))
+                     {
+                         result.AddError(ErrorCode.ValidationError,
+                             string.Format("Account already exists with phone : [{0}] and role : [{1}]",
+                                 command.PhoneNumber, role.RoleName));
+                         return result;
+                     }
+                     else
+                     {
+                         entity.Email = command.Email;
+                         entity.FullName = command.FullName;
+                         entity.PhoneNumber = command.PhoneNumber;
+                         entity.PasswordHash = command.Password;
+                         entity.Role = role;
+                     }
+                 }
+                 else
+                 {
+                     entity.Email = command.Email;
+                     entity.FullName = command.FullName;
+                     entity.PhoneNumber = command.PhoneNumber;
+                     entity.PasswordHash = command.Password;
+                     entity.Role = role;
+                 }
+
+                 if (role!.RoleName.ToUpper() == "DRIVER")
+                 {
+                     entity.DriverStatus = DriverStatus.Available;
+                 }
+
+                 var u = await _unitOfWork.UserRepository.AddAsync(entity);
+                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                 if (!isSuccess)
+                 {
+                     result.AddUnknownError("Can not save to database");
+                 }
+                 if (u.Role.RoleName == "DRIVER")
+                 {
+                     var wallet = new Wallet()
+                     {
+                         Balance = 0M,
+                         Debt = 0M,
+                         User = u
+                     };
+                     var w = await _unitOfWork.WalletRepository.AddAsync(wallet);
+                     await _unitOfWork.SaveChangeAsync();
+                 }
+
+                 var userResponse = new UserResponse()
+                 {
+                    Id = u.Id,
+                    ModificationDate = u.ModificationDate,
+                    PhoneNumber = u.PhoneNumber,
+                    RoleName = u.Role.RoleName,
+                    CreationDate = u.CreationDate,
+                    Email = u.Email,
+                    VehicleDto = null,
+                    AvatarUrl = u.AvatarUrl,
+                    CreatedBy = u.CreatedBy,
+                    FullName = u.FullName,
+                    IsDelete = u.IsDeleted
+                 };
+                 result.Payload = userResponse;
+                 await transaction.CommitAsync();
+                 
+             }
+             catch (Exception ex)
+             {
+                 result.AddUnknownError(ex.Message);
+                 await transaction.RollbackAsync();
+             }
+             finally
+             {
+                 _unitOfWork.Dispose();
+             }
+
+             return result;
+         }
     }
-    
 
     public async Task<OperationResult<UserLoginResponse>> Login(LoginRequest query)
     {
@@ -156,7 +179,7 @@ public class UserService : IUserService
             }
             if (user.IsDeleted == true)
             {
-                result.AddError(ErrorCode.ServerError, "Your account has been disabled");
+                result.AddError(ErrorCode.BadRequest, "Your account has been disabled");
                 return result;
             }
             if (user.PasswordHash != query.Password)
@@ -166,7 +189,7 @@ public class UserService : IUserService
             }
             if (role!.RoleName == "DRIVER" && user.Vehicles.Count == 0)
             {
-                result.AddError(ErrorCode.ServerError, "Your account has not registered a vehicle with the system");
+                result.AddError(ErrorCode.BadRequest, "Your account has not registered a vehicle with the system");
                 return result;
             }
             string? token = user.GenerateJsonWebToken(_appConfiguration.JwtSettings, _currentTime.GetCurrentTime());
@@ -275,10 +298,9 @@ public class UserService : IUserService
             result.AddUnknownError(ex.Message);
         }
         return result;
-
     }
 
-    public async Task<OperationResult<UserResponse>> GetUserById(Guid id)
+    public async Task<OperationResult<UserResponse>> GetUser(Guid id)
     {
         var result = new OperationResult<UserResponse>();
         try
@@ -312,17 +334,39 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserResponse>> DisableUser(Guid userId)
+    public async Task<OperationResult<UserResponse>> ChangeStatusUser(Guid userId, StatusAccount statusAccount)
     {
         var result = new OperationResult<UserResponse>();
         try
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            user!.IsDeleted = true;
-            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            if (!isSuccess)
+            if (statusAccount == StatusAccount.active)
             {
-                result.AddError(ErrorCode.ServerError, $"Can not disable User with id: {userId}");
+                if (user.IsDeleted == false)
+                {
+                    result.AddError(ErrorCode.BadRequest,"This user is in active state");
+                    return result;
+                }
+                user!.IsDeleted = false;
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.ServerError, $"Can not Active User with id: {userId}");
+                }
+            }
+            if (statusAccount == StatusAccount.disabled)
+            {
+                if (user.IsDeleted == true)
+                {
+                    result.AddError(ErrorCode.BadRequest,"This user is in disable state");
+                    return result;
+                }
+                user!.IsDeleted = true;
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.ServerError, $"Can not disable User with id: {userId}");
+                }
             }
         }
         catch (Exception ex)
@@ -336,23 +380,13 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserResponse>> ActiveUser(Guid userId)
+    /*public async Task<OperationResult<UserResponse>> ActiveUser(Guid userId)
     {
         var result = new OperationResult<UserResponse>();
         try
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            if (user.IsDeleted == false)
-            {
-                result.AddError(ErrorCode.ServerError,"This user is in active state");
-                return result;
-            }
-            user!.IsDeleted = false;
-            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            if (!isSuccess)
-            {
-                result.AddError(ErrorCode.ServerError, $"Can not Active User with id: {userId}");
-            }
+            
         }
         catch (Exception ex)
         {
@@ -363,7 +397,7 @@ public class UserService : IUserService
             _unitOfWork.Dispose();
         }
         return result;
-    }
+    }*/
 
     public async Task<OperationResult<UserResponse>> ForgotPassword(string email)
     {
@@ -440,39 +474,54 @@ public class UserService : IUserService
         }
         return result;
     }
-}
 
-
-
-/* The example to implement 
- 
-public class FooService
-{
-    private readonly IUnitOfWork _unitOfWork;
-    public FooService(IUnitOfWork unitOfWork)
+    public async Task<OperationResult<WalletResponse>> GetWalletByUser(Guid userId)
     {
-        _unitOfWork = unitOfWork;
-    }
-
-    public void Bar()
-    {
-        using (var transaction = _unitOfWork.BeginTransaction())
+        var result = new OperationResult<WalletResponse>();
+        try
         {
-            try
-            {
-                _unitOfWork.Users.Add(new UserModel("dummy username"));
-                _unitOfWork.SaveChanges();
-                _unitOfWork.Addresses.Add(new AddressModel("dummy address"));
-                _unitOfWork.SaveChanges();
-
-                transaction.Commit();
-            }
-            catch (Exception)
-            {
-                transaction.Rollback();
-            }
+            var include = new[] { "Wallet" };
+            var user = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Id == userId,include);
+            var wallet = user.Wallet;
+            result.Payload = _mapper.Map<WalletResponse>(wallet);
         }
+        catch (InvalidOperationException e)
+        {
+            result.AddUnknownError($"Not found ID:[{userId}]");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<TransactionResponse>>> GetTransactionByUser(Guid userId)
+    {
+        var result = new OperationResult<List<TransactionResponse>>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetDetail(userId);
+            var transactions = user.Wallet.Transactions.ToList();
+            var map = _mapper.Map<List<TransactionResponse>>(transactions);
+            result.Payload = map;
+        }
+        catch (InvalidOperationException)
+        {
+            result.AddUnknownError($"Not found ID:[{userId}]");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
     }
 }
- 
- */

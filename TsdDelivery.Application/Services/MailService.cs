@@ -4,11 +4,11 @@ using MailKit.Security;
 using MimeKit;
 using RazorEngineCore;
 using TsdDelivery.Application.Commons;
-using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Models.Mail;
 using TsdDelivery.Domain.Entities;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services;
 
 public class MailService : IMailService
 {

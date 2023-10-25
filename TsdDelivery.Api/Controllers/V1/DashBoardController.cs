@@ -40,4 +40,18 @@ public class DashBoardController : BaseController
         var response = await _dashBoardService.GetVehicleByVehicleType();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTotalReservationByDay(DateTime from, DateTime to)
+    {
+        var response = await _dashBoardService.GetTotalReservationByDay(from,to);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTotalReservationByVehicleType()
+    {
+        var response = await _dashBoardService.GetTotalReservationByVehicleType();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
