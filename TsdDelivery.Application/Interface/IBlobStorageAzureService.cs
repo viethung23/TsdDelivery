@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace TsdDelivery.Application.Interface.V1;
+namespace TsdDelivery.Application.Interface;
 
 public interface IBlobStorageAzureService
 {

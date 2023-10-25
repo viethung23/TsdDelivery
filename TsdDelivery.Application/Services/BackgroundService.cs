@@ -1,12 +1,12 @@
 using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
-using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services.Momo.Request;
 using TsdDelivery.Application.Services.Momo.Response;
 using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services;
 
 public class BackgroundService : IBackgroundService
 {

@@ -36,6 +36,13 @@ public class UserRepository : GenericRepository<User>, IUserRepository
                 .ThenInclude(x => x.VehicleType).FirstAsync();
     }
 
+    public Task<User> GetDetail(Guid id)
+    {
+        return _dbSet.Where(x => x.Id == id)
+            .Include(x => x.Wallet)
+                .ThenInclude(x => x.Transactions).FirstAsync();
+    }
+
     public Task<int> GetUserCountByRole(Guid roleId)
     {
         return _dbSet.Where(x => x.RoleId == roleId).CountAsync();

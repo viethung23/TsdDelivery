@@ -25,7 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IHangFireRepository, HangFireRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // add service
+        // add service V1
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IVehicleTypeService,VehicleTypeService>();
@@ -41,6 +41,14 @@ public static class DependencyInjection
         services.AddScoped<IMapService, MapService>();
         services.AddScoped<IDashBoardService, DashBoardService>();
         services.AddTransient<IMailService, MailService>();
+        
+        // add service V2
+        services.AddScoped<Application.Interface.V2.IRoleService, Application.Services.V2.RoleService>();
+        services.AddScoped<Application.Interface.V2.IUserService, Application.Services.V2.UserService>();
+        services.AddScoped<Application.Interface.V2.IVehicleTypeService, Application.Services.V2.VehicleTypeService>();
+        services.AddScoped<Application.Interface.V2.IVehicleService, Application.Services.V2.VehicleService>();
+        services.AddScoped<Application.Interface.V2.IService, Application.Services.V2.ServiceService>();
+        services.AddScoped<Application.Interface.V2.IWalletService, Application.Services.V2.WalletService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(databaseConnection));

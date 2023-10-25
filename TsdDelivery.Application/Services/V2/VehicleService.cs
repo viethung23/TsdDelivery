@@ -1,25 +1,66 @@
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Interface;
-using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Interface.V2;
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.Vehicle.request;
 using TsdDelivery.Application.Models.Vehicle.Response;
 using TsdDelivery.Domain.Entities;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services.V2;
 
 public class VehicleService : IVehicleService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IBlobStorageAzureService _blobStorageAzureService;
     private readonly IMapper _mapper;
-    public VehicleService(IUnitOfWork unitOfWork, IBlobStorageAzureService lobStorageAzureService,IMapper mapper)
+    
+    public VehicleService(IUnitOfWork unitOfWork,IMapper mapper,IBlobStorageAzureService blobStorageAzureService)
     {
         _unitOfWork = unitOfWork;
-        _blobStorageAzureService = lobStorageAzureService;
         _mapper = mapper;
+        _blobStorageAzureService = blobStorageAzureService;
     }
+    
+    public async Task<OperationResult<List<VehicleResponse>>> GetVehicles()
+    {
+        var result = new OperationResult<List<VehicleResponse>>();
+
+        try
+        {
+            var vehicles = await _unitOfWork.VehicleRepository.GetAllAsync();
+            result.Payload = _mapper.Map<List<VehicleResponse>>(vehicles);
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<VehicleResponse>> GetVehicle(Guid id)
+    {
+        var result = new OperationResult<VehicleResponse>();
+        try
+        {
+            var vehicle = await _unitOfWork.VehicleRepository.GetByIdAsync(id);
+            result.Payload = _mapper.Map<VehicleResponse>(vehicle);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
+    }
+
     public async Task<OperationResult<VehicleResponse>> CreateVehicle(CreateVehicle request, IFormFile blob = null)
     {
         var result = new OperationResult<VehicleResponse>();
@@ -30,7 +71,7 @@ public class VehicleService : IVehicleService
 
             if (!user.Role.RoleName.Equals("DRIVER"))
             {
-                result.AddError(ErrorCode.ServerError,
+                result.AddError(ErrorCode.BadRequest,
                     $"Can not create vehicle with UserId: [{request.UserId}] because it's not the driver");
                 return result;
             }
@@ -52,8 +93,9 @@ public class VehicleService : IVehicleService
                 vehicle.ImageVehicle = await _blobStorageAzureService.SaveImageAsync(blob);
             }
 
-            await _unitOfWork.VehicleRepository.AddAsync(vehicle);
+            var entity = await _unitOfWork.VehicleRepository.AddAsync(vehicle);
             await _unitOfWork.SaveChangeAsync();
+            result.Payload = _mapper.Map<VehicleResponse>(entity);
         }
         catch (InvalidOperationException e)
         {
@@ -83,61 +125,6 @@ public class VehicleService : IVehicleService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
-
-        return result;
-    }
-
-    public async Task<OperationResult<VehicleResponse>> GetVehicleByIdDriver(Guid idDriver)
-    {
-        var result = new OperationResult<VehicleResponse>();
-        try
-        {
-            var include = new[] { "VehicleType" };
-            var vehicle = await _unitOfWork.VehicleRepository.GetSingleByCondition(x => x.UserId == idDriver,include);
-            result.Payload = _mapper.Map<VehicleResponse>(vehicle);
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
-        return result;
-    }
-
-    public async Task<OperationResult<List<VehicleResponse>>> GetAllVehicle()
-    {
-        var result = new OperationResult<List<VehicleResponse>>();
-
-        try
-        {
-            var vehicles = await _unitOfWork.VehicleRepository.GetAllAsync();
-            var list = new List<VehicleResponse>();
-            foreach (var vehicle in vehicles)
-            {
-                var vResponse = new VehicleResponse
-                {
-                    Id = vehicle.Id,
-                    NameVehicle = vehicle.NameVehicle,
-                    Description = vehicle.Description,
-                    ImageVehicle = vehicle.ImageVehicle,
-                    LicensePlate = vehicle.LicensePlate,
-                    VehicleLoad = vehicle.VehicleLoad
-                };
-                list.Add(vResponse);
-            }
-            result.Payload = list;
-        }
-        catch (Exception ex)
-        {
-            result.AddUnknownError(ex.Message);
         }
         finally
         {

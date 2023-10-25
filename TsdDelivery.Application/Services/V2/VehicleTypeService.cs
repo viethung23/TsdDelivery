@@ -1,30 +1,50 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using TsdDelivery.Application.Interface;
-using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Interface.V2;
 using TsdDelivery.Application.Models;
+using TsdDelivery.Application.Models.Service.Response;
 using TsdDelivery.Application.Models.VehicleType.Request;
 using TsdDelivery.Application.Models.VehicleType.Response;
 using TsdDelivery.Domain.Entities;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services.V2;
 
 public class VehicleTypeService : IVehicleTypeService
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IBlobStorageAzureService _blobStorageAzureService;
     private readonly IMapper _mapper;
-    public VehicleTypeService(IUnitOfWork unitOfWork, IBlobStorageAzureService blobStorageAzureService,IMapper mapper)
+    private readonly IBlobStorageAzureService _blobStorageAzureService;
+
+    public VehicleTypeService(IUnitOfWork unitOfWork,IMapper mapper,IBlobStorageAzureService blobStorageAzureService)
     {
         _unitOfWork = unitOfWork;
-        _blobStorageAzureService = blobStorageAzureService;
         _mapper = mapper;
+        _blobStorageAzureService = blobStorageAzureService;
+    }
+    
+    public async Task<OperationResult<List<VehicleTypeResponse>>> GetVehicleTypes()
+    {
+        var result = new OperationResult<List<VehicleTypeResponse>>();
+        try
+        {
+            var vType = await _unitOfWork.VehicleTypeReposiory.GetAllAsync();
+            result.Payload = _mapper.Map<List<VehicleTypeResponse>>(vType);
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+        finally
+        {
+            _unitOfWork.Dispose();
+        }
+        return result;
     }
 
     public async Task<OperationResult<VehicleTypeResponse>> CreateVehicleType(CreateVehicleType request, IFormFile? blob = null)
     {
         var result = new OperationResult<VehicleTypeResponse>();
-
         try
         {
             var entity = new VehicleType()
@@ -66,7 +86,6 @@ public class VehicleTypeService : IVehicleTypeService
     public async Task<OperationResult<VehicleTypeResponse>> DeleteVehicleType(Guid id)
     {
         var result = new OperationResult<VehicleTypeResponse>();
-
         try
         {
             var entity = await _unitOfWork.VehicleTypeReposiory.GetByIdAsync(id);
@@ -85,7 +104,7 @@ public class VehicleTypeService : IVehicleTypeService
         return result;
     }
 
-    public async Task<OperationResult<VehicleTypeDetailResponse>> GetVehicleTypeDetail(Guid id)
+    public async Task<OperationResult<VehicleTypeDetailResponse>> GetVehicleType(Guid id)
     {
         var result = new OperationResult<VehicleTypeDetailResponse>();
         try
@@ -107,32 +126,32 @@ public class VehicleTypeService : IVehicleTypeService
         return result;
     }
 
-    public async Task<OperationResult<List<VehicleTypeResponse>>> GetAllVehicleType()
+    public async Task<OperationResult<List<ServiceResponseDetail>>> GetServicesByVehicleType(Guid id)
     {
-        var result = new OperationResult<List<VehicleTypeResponse>>();
-
+        var result = new OperationResult<List<ServiceResponseDetail>>();
         try
         {
-            var vType = await _unitOfWork.VehicleTypeReposiory.GetAllAsync();
-            var list = new List<VehicleTypeResponse>();
-
-            foreach ( var vehicleType in vType)
+            string[] include = {"services"};
+            var vehicleType = await _unitOfWork.VehicleTypeReposiory.GetSingleByCondition(x => x.Id == id, include);
+            var services = vehicleType.services.ToList();
+            var list = new List<ServiceResponseDetail>();
+            foreach (var service in services)
             {
-                var vehiscleResponse = new VehicleTypeResponse()
+                var serviceResponseDetail = new ServiceResponseDetail()
                 {
-                    Id = vehicleType.Id,
-                    VehicleTypeName = vehicleType.VehicleTypeName,
-                    VehicleTypeImage = vehicleType.VehicleTypeImage,
-                    Description = vehicleType.Description,
+                    Id = service.Id,
+                    ServiceName = service.ServiceName,
+                    Description = service.Description,
+                    Price = service.Price,
+                    IsShow = service.Price != 0M
                 };
-                list.Add(vehiscleResponse);
+                list.Add(serviceResponseDetail);
             }
             result.Payload = list;
-
-
-        }catch (Exception ex)
+        }
+        catch (Exception e)
         {
-            result.AddUnknownError(ex.Message);
+            result.AddUnknownError($"Not Found by ID: [{id}]");
         }
         finally
         {

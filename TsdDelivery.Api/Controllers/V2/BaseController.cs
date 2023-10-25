@@ -20,7 +20,6 @@ public class BaseController : ControllerBase
             apiError.StatusPhrase = "Not Found";
             apiError.Timestamp = DateTime.Now;
             apiError.Errors.Add(error.Message);
-
             return NotFound(apiError);
         }
         if(errors.Any(e => e.Code == ErrorCode.NoContent))
@@ -31,8 +30,17 @@ public class BaseController : ControllerBase
             apiError.StatusPhrase = "No Content";
             apiError.Timestamp = DateTime.Now;
             apiError.Errors.Add(error.Message);
-
             return NoContent();
+        }
+        if(errors.Any(e => e.Code == ErrorCode.ServerError))
+        {
+            var error = errors.FirstOrDefault(e => e.Code == ErrorCode.ServerError);
+
+            apiError.StatusCode = 500;
+            apiError.StatusPhrase = "Server Error";
+            apiError.Timestamp = DateTime.Now;
+            apiError.Errors.Add(error.Message);
+            return StatusCode(500, apiError);
         }
 
         apiError.StatusCode = 400;

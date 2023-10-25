@@ -2,6 +2,7 @@
 using TsdDelivery.Application.Models;
 using TsdDelivery.Application.Models.User.Request;
 using TsdDelivery.Application.Models.User.Response;
+using TsdDelivery.Application.Models.Wallet.Response;
 using TsdDelivery.Domain.Entities;
 
 namespace TsdDelivery.Application.Interface.V1;
@@ -18,4 +19,5 @@ public interface IUserService
     public Task<OperationResult<UserResponse>> ActiveUser(Guid userId);
     public Task<OperationResult<UserResponse>> ForgotPassword(string email);
     public Task<OperationResult<UserResponse>> ResetPassword(ResetPasswordRequest request);
+
 }

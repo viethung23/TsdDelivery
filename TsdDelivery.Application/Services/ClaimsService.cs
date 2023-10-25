@@ -1,8 +1,9 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Interface.V1;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services;
 
 public class ClaimsService : IClaimsService
 {

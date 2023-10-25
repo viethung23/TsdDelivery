@@ -7,6 +7,7 @@ public enum ErrorCode
     ServerError = 500,
     UnAuthorize = 401,
     Forbidden = 403,
+    BadRequest = 400,
     //Validation errors should be in the range 100 - 199
     ValidationError = 101,
     

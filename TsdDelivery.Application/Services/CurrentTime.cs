@@ -1,6 +1,6 @@
-﻿using TsdDelivery.Application.Interface.V1;
+using TsdDelivery.Application.Interface;
 
-namespace TsdDelivery.Application.Services.V1;
+namespace TsdDelivery.Application.Services;
 
 public class CurrentTime : ICurrentTime
 {
