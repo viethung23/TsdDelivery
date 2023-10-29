@@ -33,7 +33,20 @@ public class MomoService : IMomoService
         _redisConnection = redisConnection;
     }
     
-    public async Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest request)
+    public async Task<(bool, string?, string?)> CreateMomoPayment(CreateReservationRequest request, Reservation entity)
+    {
+        var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_configuration.MomoConfig.PartnerCode,
+            _currentTime.GetCurrentTime().Ticks.ToString() + entity.Code+"tsd" ?? string.Empty, (long)request.TotalPrice!,
+            entity.Id!.ToString() ?? string.Empty,
+            "Thanh toán đặt xe TSD" ?? string.Empty, _configuration.MomoConfig.ReturnUrl,_configuration.MomoConfig.IpnUrl, "captureWallet",
+            string.Empty);
+        momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey,
+            _configuration.MomoConfig.SecretKey);
+         
+        return await momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
+    }
+    
+    /*public async Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest request)
     {
         var result = new OperationResult<string>();
         const string methodName = "AutoCancelReservationWhenOverAllowPaymentTime";
@@ -107,18 +120,7 @@ public class MomoService : IMomoService
             _unitOfWork.Dispose();
         }
         return result;
-    }
+    }*/
 
-    public async Task<(bool, string?, string?)> CreateMomoPayment(CreateReservationRequest request, Reservation entity)
-    {
-        var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_configuration.MomoConfig.PartnerCode,
-            _currentTime.GetCurrentTime().Ticks.ToString() + entity.Code+"tsd" ?? string.Empty, (long)request.TotalPrice!,
-            entity.Id!.ToString() ?? string.Empty,
-            "Thanh toán đặt xe TSD" ?? string.Empty, _configuration.MomoConfig.ReturnUrl,_configuration.MomoConfig.IpnUrl, "captureWallet",
-            string.Empty);
-        momoOneTimePayRequest.MakeSignature(_configuration.MomoConfig.AccessKey,
-            _configuration.MomoConfig.SecretKey);
-         
-        return await momoOneTimePayRequest.GetLink(_configuration.MomoConfig.PaymentUrl);
-    }
+    
 }

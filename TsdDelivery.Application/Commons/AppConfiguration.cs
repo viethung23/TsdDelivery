@@ -8,7 +8,9 @@ public class AppConfiguration
     public FileService FileService { get; set; }
     public MomoConfig MomoConfig { get; set; }
     public ZaloPayConfig ZaloPayConfig { get; set; }
+    public PaypalConfig PaypalConfig { get; set; }
     public Tomtom Tomtom { get; set; }
     public MailConfig MailConfig { get; set; }
+    public ApiLayerConfig ApiLayerConfig { get; set; }
 }
 

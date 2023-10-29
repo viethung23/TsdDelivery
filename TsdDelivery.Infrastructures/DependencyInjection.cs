@@ -11,6 +11,7 @@ using StackExchange.Redis;
 using TsdDelivery.Application.Interface.V1;
 using TsdDelivery.Application.Repositories;
 using TsdDelivery.Application.Services.Momo;
+using TsdDelivery.Application.Services.PayPal;
 using TsdDelivery.Application.Services.V1;
 using TsdDelivery.Application.Services.ZaloPay;
 using TsdDelivery.Infrastructures.Repositories;
@@ -25,22 +26,26 @@ public static class DependencyInjection
         services.AddScoped<IHangFireRepository, HangFireRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        
+        services.AddScoped<IMapService, MapService>();
+        services.AddScoped<IDashBoardService, DashBoardService>();
+        services.AddTransient<IMailService, MailService>();
+        services.AddScoped<IMomoService, MomoService>();
+        services.AddScoped<IZaloPayService, ZaloPayService>();
+        services.AddScoped<IBlobStorageAzureService, BlobStorageAzureService>();
+        services.AddScoped<IPayPalService, PayPalService>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        
         // add service V1
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IVehicleTypeService,VehicleTypeService>();
         services.AddScoped<IVehicleService,VehicleService>();
-        services.AddScoped<IBlobStorageAzureService, BlobStorageAzureService>();
         services.AddScoped<IService, ServiceService>();
         services.AddScoped<IShippingRateService, ShippingRateService>();
         services.AddScoped<IReservationService, ReservationService>();
-        services.AddScoped<IMomoService, MomoService>();
-        services.AddScoped<IZaloPayService, ZaloPayService>();
         services.AddScoped<IWalletService, WalletService>();
         services.AddScoped<ITransactionService, TransactionService>();
-        services.AddScoped<IMapService, MapService>();
-        services.AddScoped<IDashBoardService, DashBoardService>();
-        services.AddTransient<IMailService, MailService>();
         
         // add service V2
         services.AddScoped<Application.Interface.V2.IRoleService, Application.Services.V2.RoleService>();
