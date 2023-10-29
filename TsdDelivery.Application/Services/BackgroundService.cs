@@ -3,6 +3,7 @@ using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Services.Momo.Request;
 using TsdDelivery.Application.Services.Momo.Response;
+using TsdDelivery.Application.Services.PayPal.Request;
 using TsdDelivery.Domain.Entities;
 using TsdDelivery.Domain.Entities.Enums;
 
@@ -14,14 +15,17 @@ public class BackgroundService : IBackgroundService
     private readonly AppConfiguration _configuration;
     private readonly IConnectionMultiplexer _redisConnection;
     private readonly ICurrentTime _currentTime;
+    private readonly IPayPalService _payPalService;
+    
     public BackgroundService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration
         ,IConnectionMultiplexer connectionMultiplexer
-        ,ICurrentTime currentTime)
+        ,ICurrentTime currentTime,IPayPalService payPalService)
     {
         _unitOfWork = unitOfWork;
         _configuration = appConfiguration;
         _redisConnection = connectionMultiplexer;
         _currentTime = currentTime;
+        _payPalService = payPalService;
     }
     
     public async Task AutoCancelReservationWhenOverAllowPaymentTime(Guid reservationId)
@@ -42,7 +46,7 @@ public class BackgroundService : IBackgroundService
         }
     }
 
-    public async Task AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver(string orderId,string transId)
+    public async Task AutoCancelAndRefundMoMoWhenOverAllowTimeAwaitingDriver(string paymentMethod,string orderId,string transId)
     {
         try
         {
@@ -74,7 +78,7 @@ public class BackgroundService : IBackgroundService
                     {
                         Price = data.amount,
                         Status = TransactionStatus.success.ToString(),
-                        PaymentMethod = "Thanh-toan-online",
+                        PaymentMethod = paymentMethod,
                         Description = "Hoàn tiền từ đơn đặt có Mã: " + reservation.Id + " . Vì lý do quá thời gian chờ tài xế",
                         WalletId = admin.Wallet!.Id,
                         ReservationId = reservation.Id,
@@ -94,7 +98,44 @@ public class BackgroundService : IBackgroundService
         }
         catch (Exception e)
         {
-            throw new Exception($"Error at BackgroundService.AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver: Message {e.Message}");
+            throw new Exception($"Error at BackgroundService.AutoCancelAndRefundMoMoWhenOverAllowTimeAwaitingDriver: Message {e.Message}");
+        }
+    }
+
+    public async Task AutoCancelAndRefundPayPalWhenOverAllowTimeAwaitingDriver(string paymentMethod,string orderId, string captureId)
+    {
+        try
+        {
+            var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(Guid.Parse(orderId));
+            var paypalRefundRequest = new PayPalRefundRequest($"Hoàn tiền cho đơn đặt xe : {orderId}");                              // will be refund defaut all money payer payed
+            var accessToken = await _payPalService.GenerateAccessToken(_configuration.PaypalConfig.ClientId,
+                _configuration.PaypalConfig.SecretKey, _configuration.PaypalConfig.PayPalUrl);
+            var isRefund = await paypalRefundRequest.Refund(_configuration.PaypalConfig.PayPalUrl, captureId, accessToken);
+            if (isRefund)
+            {
+                var include = new [] {"Wallet"};
+                // fix cứng Admin 
+                var admin = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Role.RoleName == "ADMIN", include);
+                admin.Wallet!.Balance -= reservation!.TotallPrice;
+                await _unitOfWork.SaveChangeAsync();
+                    
+                var transactionForAdmin = new Transaction()
+                {
+                    Price = reservation!.TotallPrice,
+                    Status = TransactionStatus.success.ToString(),
+                    PaymentMethod = paymentMethod,
+                    Description = "Hoàn tiền từ đơn đặt có Mã: " + reservation.Id + " . Vì lý do quá thời gian chờ tài xế",
+                    WalletId = admin.Wallet!.Id,
+                    ReservationId = reservation.Id,
+                    TransactionType = TransactionType.Minus
+                };
+                await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
+                await _unitOfWork.SaveChangeAsync();
+            }
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"Error at BackgroundService.AutoCancelAndRefundPayPalWhenOverAllowTimeAwaitingDriver: Message {e.Message}");
         }
     }
 

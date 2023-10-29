@@ -27,6 +27,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="PayPal" Version="2.0.0-rc2" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="RazorEngineCore" Version="2022.8.1" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
@@ -34,7 +35,7 @@
 
   <ItemGroup>
     <Folder Include="Models\DashBoard\Request\" />
-    <Folder Include="Services\VnPay\Response\" />
+    <Folder Include="Services\PayPal\Response\" />
     <ProjectReference Include="..\TsdDelivery.Domain\TsdDelivery.Domain.csproj" />
     <Folder Include="Models\Transaction\Request\" />
     <Folder Include="Models\Wallet\Request\" />

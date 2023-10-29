@@ -3,6 +3,7 @@ namespace TsdDelivery.Application.Interface;
 public interface IBackgroundService
 {
     Task AutoCancelReservationWhenOverAllowPaymentTime(Guid reservationId);
-    Task AutoCancelAndRefundWhenOverAllowTimeAwaitingDriver(string orderId,string transId);
+    Task AutoCancelAndRefundMoMoWhenOverAllowTimeAwaitingDriver(string paymentMethod,string orderId,string transId);
+    Task AutoCancelAndRefundPayPalWhenOverAllowTimeAwaitingDriver(string paymentMethod,string orderId,string captureId);
     Task AutoResetCacheUserLoginCount();
 }

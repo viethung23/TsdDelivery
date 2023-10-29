@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using TsdDelivery.Application.Interface;
 using TsdDelivery.Application.Interface.V1;
 using TsdDelivery.Application.Services.Momo.Request;
+using TsdDelivery.Application.Services.PayPal.Request;
 
 namespace TsdDelivery.Api.Controllers.V1;
 
@@ -12,12 +13,10 @@ namespace TsdDelivery.Api.Controllers.V1;
 [ApiController]
 public class PaymentsController : BaseController
 {
-    private readonly IMomoService _momoService;
-    private readonly IZaloPayService _zaloPayService;
-    public PaymentsController(IMomoService momoService,IZaloPayService zaloPayService)
+    private readonly IPaymentService _paymentService;
+    public PaymentsController(IPaymentService paymentService)
     {
-        _momoService = momoService;
-        _zaloPayService = zaloPayService;
+        _paymentService = paymentService;
     }
     
     /// <summary>
@@ -27,19 +26,38 @@ public class PaymentsController : BaseController
     /// <returns></returns>
     [HttpGet]
     [Route("momo-return")]
-    public async Task<IActionResult> MomoReturn([FromQuery]MomoOneTimePaymentResultRequest request)
+    public async Task<IActionResult> MomoReturn([FromQuery] MomoOneTimePaymentResultRequest request)
     {
-        var response = await _momoService.ProcessMomoPaymentReturn(request);
+        var paymentMethod = "MOMO";
+        var response = await _paymentService.ProcessPaymentReturn(paymentMethod, request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Redirect($"{response.Payload}/order-success");
     }
 
-    [HttpPost]
-    [Route("momo-ipn")]
-    [Produces("application/json")]
-    [ProducesResponseType((int)HttpStatusCode.NoContent)]
-    public async Task<IActionResult> MomoIpn(MomoOneTimePaymentResultRequest request)
+
+    /// <summary>
+    /// Api for System
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpGet]
+    [Route("paypal-return")]
+    public async Task<IActionResult> PayPalReturn([FromQuery] PayPalPaymentResultRequest request)
     {
-        //var response = await _momoService.ProcessMomoPaymentReturn(request);
-        return StatusCode(204);
+        var paymentMethod = "PAYPAL";
+        var response = await _paymentService.ProcessPaymentReturn(paymentMethod, request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Redirect($"{response.Payload}/order-success");
+    }
+
+    /// <summary>
+    /// Api for System
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    [HttpGet]
+    [Route("paypal-cancel")]
+    public async Task<IActionResult> PayPalCancel([FromQuery]string token)
+    {
+        var response = await _paymentService.CancelPayPalPayment(token);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Redirect($"{response.Payload}/user");
     }
 }

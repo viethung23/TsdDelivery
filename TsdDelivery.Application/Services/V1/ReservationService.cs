@@ -27,12 +27,14 @@ public class ReservationService : IReservationService
     private readonly IClaimsService _claimsService;
     private readonly IMomoService _momoService;
     private readonly IZaloPayService _zaloPayService;
+    private readonly IPayPalService _payPalService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IConnectionMultiplexer _redisConnection;
 
     public ReservationService(IUnitOfWork unitOfWork, IMapper mapper, AppConfiguration appConfiguration,
         ICurrentTime currentTime, IClaimsService claimsService, IMapService mapService, IMomoService momoService,
-        IZaloPayService zaloPayService,IHttpContextAccessor httpContextAccessor,IConnectionMultiplexer redisConnection)
+        IZaloPayService zaloPayService,IHttpContextAccessor httpContextAccessor,IConnectionMultiplexer redisConnection
+        ,IPayPalService payPalService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -42,6 +44,7 @@ public class ReservationService : IReservationService
         _mapService = mapService;
         _momoService = momoService;
         _zaloPayService = zaloPayService;
+        _payPalService = payPalService;
         _httpContextAccessor = httpContextAccessor;
         _redisConnection = redisConnection;
     }
@@ -172,7 +175,21 @@ public class ReservationService : IReservationService
                         break;
 
                     case "VNPAY":
-
+                        break;
+                    
+                    case "PAYPAL":
+                        var paypalResult = await _payPalService.CreatePaypalPayment(request, entity);
+                        if (paypalResult.Item1)
+                        {
+                            createReservationResponse.Id = entity.Id;
+                            createReservationResponse.PaymentUrl = paypalResult.Item2;
+                            createReservationResponse.deeplink = null;
+                            result.Payload = createReservationResponse;
+                        }
+                        else
+                        {
+                            throw new Exception("xảy ra lỗi khi tạo link thanh toán PayPal");
+                        }
                         break;
                 }
 
@@ -188,7 +205,7 @@ public class ReservationService : IReservationService
                 cache.StringSet("Payment_" + entity.Id, json,TimeSpan.FromMinutes(10));
 
                 // goi Background Service Check status sau 5p
-                var timeToCancel = DateTime.UtcNow.AddMinutes(40);
+                var timeToCancel = DateTime.UtcNow.AddMinutes(15);
                 string id = BackgroundJob.Schedule<IBackgroundService>(
                     x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel);
             }

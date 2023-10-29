@@ -7,6 +7,6 @@ namespace TsdDelivery.Application.Interface;
 
 public interface IMomoService
 {
-    public Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest MomoOneTimePaymentResultRequest);
+    //public Task<OperationResult<string>> ProcessMomoPaymentReturn(MomoOneTimePaymentResultRequest MomoOneTimePaymentResultRequest);
     public Task<(bool, string?, string?)> CreateMomoPayment(CreateReservationRequest request,Reservation reservation);
 }
