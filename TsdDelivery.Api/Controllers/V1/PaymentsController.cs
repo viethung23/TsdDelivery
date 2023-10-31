@@ -47,6 +47,20 @@ public class PaymentsController : BaseController
         var response = await _paymentService.ProcessPaymentReturn(paymentMethod, request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Redirect($"{response.Payload}/order-success");
     }
+    
+    /// <summary>
+    /// Api for MA GIÁO
+    /// </summary>
+    /// <param name="orderId"></param>
+    /// <returns></returns>
+    [HttpGet]
+    [Route("zalopay-handle-return")]
+    public async Task<IActionResult> ZaloPayReturn_Handle([FromQuery]string orderId)
+    {
+        var paymentMethod = "ZALOPAY";
+        var response = await _paymentService.ProcessPaymentReturn(paymentMethod,orderId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Redirect($"{response.Payload}/order-success");
+    }
 
     /// <summary>
     /// Api for System
@@ -60,4 +74,7 @@ public class PaymentsController : BaseController
         var response = await _paymentService.CancelPayPalPayment(token);
         return response.IsError ? HandleErrorResponse(response.Errors) : Redirect($"{response.Payload}/user");
     }
+    
+    
+    
 }

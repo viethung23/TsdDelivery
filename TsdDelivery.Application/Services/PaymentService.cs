@@ -53,6 +53,11 @@ public class PaymentService : IPaymentService
                         momoResult = paymentResultRequest as MomoOneTimePaymentResultRequest;
                         reservation = await VerifyReturnContentMoMo(momoResult);
                         break;
+                    
+                    case "ZALOPAY":        // hàm này làm ma giáo 
+                        var orderId = paymentResultRequest as string;
+                        reservation = await VerifyReturnContentZalopay(orderId);
+                        break;
 
                     case "PAYPAL": 
                         paypalResult = paymentResultRequest as PayPalPaymentResultRequest;
@@ -63,10 +68,12 @@ public class PaymentService : IPaymentService
                 }
 
                 reservation.ReservationStatus = ReservationStatus.AwaitingDriver;
+                //await _unitOfWork.ReservationRepository.Update(reservation);
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
                 if (!isSuccess)
                 {
                     result.AddError(ErrorCode.ServerError, "Fail to update reservation status");
+                    return result;
                 }
 
                 // add money to Admin wallet
@@ -112,6 +119,12 @@ public class PaymentService : IPaymentService
                         x => x.AutoCancelAndRefundPayPalWhenOverAllowTimeAwaitingDriver(paymentMethod,reservation.Id.ToString(),
                             capture_id), timeToCancel);
                 }
+                if (paymentMethod == "ZALOPAY")
+                {
+                    BackgroundJob.Schedule<IBackgroundService>(
+                        x => x.AutoSendEmailToAdminZaloPayWhenOverAllowTimeAwaitingDriver(paymentMethod,reservation.Id.ToString()), timeToCancel);
+                }
+                
                 
                 // delete job chờ thanh toán 
                 // ở đây gọi HangfireRepository để delete cái job check over allow payment time 
@@ -189,5 +202,11 @@ public class PaymentService : IPaymentService
         var result = await request.CapturePaymentForOrder(_configuration.PaypalConfig.PayPalUrl, accessToken);
         var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(result.Item1);
         return (reservation,result.Item2);
+    }
+
+    private async Task<Reservation> VerifyReturnContentZalopay(string orderId)
+    {
+        var re = await _unitOfWork.ReservationRepository.GetByIdAsync(Guid.Parse(orderId));
+        return re;
     }
 }

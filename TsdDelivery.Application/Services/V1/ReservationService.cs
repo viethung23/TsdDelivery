@@ -156,8 +156,8 @@ public class ReservationService : IReservationService
                         }
 
                         break;
-
-                    case "ZALOPAY":
+                    // THIS CASE IS TRUE 
+                    /*case "ZALOPAY":
                         (bool createZaloPayLinkResult, string? createZaloPayMessage) =
                             await _zaloPayService.CreateZaloPayment(request, entity);
                         if (createZaloPayLinkResult)
@@ -171,7 +171,15 @@ public class ReservationService : IReservationService
                         {
                             throw new Exception(createZaloPayMessage);
                         }
-
+                        break;*/
+                    
+                    // CASE MA GIÁO 
+                    case "ZALOPAY":
+                        var url = $"https://qrpay.zalopay.vn/merchant/shop/43448/613549/613549_613550/613549_613550_617029?a={entity.TotallPrice}&d=thanh+toan+tsd";
+                        createReservationResponse.Id = entity.Id;
+                        createReservationResponse.PaymentUrl = url;
+                        createReservationResponse.deeplink = url;
+                        result.Payload = createReservationResponse;
                         break;
 
                     case "VNPAY":
@@ -204,7 +212,7 @@ public class ReservationService : IReservationService
                 var json = JsonConvert.SerializeObject(createReservationResponse);
                 cache.StringSet("Payment_" + entity.Id, json,TimeSpan.FromMinutes(10));
 
-                // goi Background Service Check status sau 5p
+                // goi Background Service Check status sau 15p
                 var timeToCancel = DateTime.UtcNow.AddMinutes(15);
                 string id = BackgroundJob.Schedule<IBackgroundService>(
                     x => x.AutoCancelReservationWhenOverAllowPaymentTime(entity.Id), timeToCancel);

@@ -1,6 +1,7 @@
 using StackExchange.Redis;
 using TsdDelivery.Application.Commons;
 using TsdDelivery.Application.Interface;
+using TsdDelivery.Application.Models.Mail;
 using TsdDelivery.Application.Services.Momo.Request;
 using TsdDelivery.Application.Services.Momo.Response;
 using TsdDelivery.Application.Services.PayPal.Request;
@@ -16,16 +17,19 @@ public class BackgroundService : IBackgroundService
     private readonly IConnectionMultiplexer _redisConnection;
     private readonly ICurrentTime _currentTime;
     private readonly IPayPalService _payPalService;
+    private readonly IMailService _mailService;
     
     public BackgroundService(IUnitOfWork unitOfWork,AppConfiguration appConfiguration
         ,IConnectionMultiplexer connectionMultiplexer
-        ,ICurrentTime currentTime,IPayPalService payPalService)
+        ,ICurrentTime currentTime,IPayPalService payPalService,
+        IMailService mailService)
     {
         _unitOfWork = unitOfWork;
         _configuration = appConfiguration;
         _redisConnection = connectionMultiplexer;
         _currentTime = currentTime;
         _payPalService = payPalService;
+        _mailService = mailService;
     }
     
     public async Task AutoCancelReservationWhenOverAllowPaymentTime(Guid reservationId)
@@ -107,35 +111,87 @@ public class BackgroundService : IBackgroundService
         try
         {
             var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(Guid.Parse(orderId));
-            var paypalRefundRequest = new PayPalRefundRequest($"Hoàn tiền cho đơn đặt xe : {orderId}");                              // will be refund defaut all money payer payed
-            var accessToken = await _payPalService.GenerateAccessToken(_configuration.PaypalConfig.ClientId,
-                _configuration.PaypalConfig.SecretKey, _configuration.PaypalConfig.PayPalUrl);
-            var isRefund = await paypalRefundRequest.Refund(_configuration.PaypalConfig.PayPalUrl, captureId, accessToken);
-            if (isRefund)
+            if (reservation!.ReservationStatus == ReservationStatus.AwaitingDriver)
             {
-                var include = new [] {"Wallet"};
-                // fix cứng Admin 
-                var admin = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Role.RoleName == "ADMIN", include);
-                admin.Wallet!.Balance -= reservation!.TotallPrice;
-                await _unitOfWork.SaveChangeAsync();
-                    
-                var transactionForAdmin = new Transaction()
+                var paypalRefundRequest =
+                    new PayPalRefundRequest(
+                        $"Hoàn tiền cho đơn đặt xe : {orderId}"); // will be refund defaut all money payer payed
+                var accessToken = await _payPalService.GenerateAccessToken(_configuration.PaypalConfig.ClientId,
+                    _configuration.PaypalConfig.SecretKey, _configuration.PaypalConfig.PayPalUrl);
+                var isRefund =
+                    await paypalRefundRequest.Refund(_configuration.PaypalConfig.PayPalUrl, captureId, accessToken);
+                if (isRefund)
                 {
-                    Price = reservation!.TotallPrice,
-                    Status = TransactionStatus.success.ToString(),
-                    PaymentMethod = paymentMethod,
-                    Description = "Hoàn tiền từ đơn đặt có Mã: " + reservation.Id + " . Vì lý do quá thời gian chờ tài xế",
-                    WalletId = admin.Wallet!.Id,
-                    ReservationId = reservation.Id,
-                    TransactionType = TransactionType.Minus
-                };
-                await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
-                await _unitOfWork.SaveChangeAsync();
+                    var include = new[] { "Wallet" };
+                    // fix cứng Admin 
+                    var admin = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Role.RoleName == "ADMIN",
+                        include);
+                    admin.Wallet!.Balance -= reservation!.TotallPrice;
+                    await _unitOfWork.SaveChangeAsync();
+
+                    var transactionForAdmin = new Transaction()
+                    {
+                        Price = reservation!.TotallPrice,
+                        Status = TransactionStatus.success.ToString(),
+                        PaymentMethod = paymentMethod,
+                        Description = "Hoàn tiền từ đơn đặt có Mã: " + reservation.Id +
+                                      " . Vì lý do quá thời gian chờ tài xế",
+                        WalletId = admin.Wallet!.Id,
+                        ReservationId = reservation.Id,
+                        TransactionType = TransactionType.Minus
+                    };
+                    await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
+                    reservation.ReservationStatus = ReservationStatus.Cancelled;
+                    await _unitOfWork.SaveChangeAsync();
+                }
             }
         }
         catch (Exception e)
         {
             throw new Exception($"Error at BackgroundService.AutoCancelAndRefundPayPalWhenOverAllowTimeAwaitingDriver: Message {e.Message}");
+        }
+    }
+
+    public async Task AutoSendEmailToAdminZaloPayWhenOverAllowTimeAwaitingDriver(string paymentMethod, string orderId)
+    {
+        try
+        {
+            var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(Guid.Parse(orderId));
+            if (reservation!.ReservationStatus == ReservationStatus.AwaitingDriver)
+            {
+                var mailData = new MailData(new List<string>() { "viethungdev23@gmail.com" },
+                    "Thông báo đơn đặt xe của khách hàng hết hiệu lực",
+                    $"Đơn đặt xe có mã : {orderId}, giá tiền : {reservation.TotallPrice}, của khách hàng : {reservation.UserId} đã hết hiệu lực và cần được hoàn lại tiền!!");
+                var isSended = await _mailService.SendAsync(mailData, new CancellationToken());
+                if (isSended)
+                {
+                    var include = new[] { "Wallet" };
+                    // fix cứng Admin 
+                    var admin = await _unitOfWork.UserRepository.GetSingleByCondition(x => x.Role.RoleName == "ADMIN",
+                        include);
+                    admin.Wallet!.Balance -= reservation!.TotallPrice;
+                    await _unitOfWork.SaveChangeAsync();
+
+                    var transactionForAdmin = new Transaction()
+                    {
+                        Price = reservation!.TotallPrice,
+                        Status = TransactionStatus.success.ToString(),
+                        PaymentMethod = paymentMethod,
+                        Description = "Hoàn tiền từ đơn đặt có Mã: " + reservation.Id +
+                                      " . Vì lý do quá thời gian chờ tài xế",
+                        WalletId = admin.Wallet!.Id,
+                        ReservationId = reservation.Id,
+                        TransactionType = TransactionType.Minus
+                    };
+                    await _unitOfWork.TransactionRepository.AddAsync(transactionForAdmin);
+                    reservation.ReservationStatus = ReservationStatus.Cancelled;
+                    await _unitOfWork.SaveChangeAsync();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"Error at BackgroundService.AutoSendEmailToAdminZaloPayWhenOverAllowTimeAwaitingDriver: Message {e.Message}");
         }
     }
 

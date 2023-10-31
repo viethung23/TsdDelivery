@@ -5,5 +5,6 @@ public interface IBackgroundService
     Task AutoCancelReservationWhenOverAllowPaymentTime(Guid reservationId);
     Task AutoCancelAndRefundMoMoWhenOverAllowTimeAwaitingDriver(string paymentMethod,string orderId,string transId);
     Task AutoCancelAndRefundPayPalWhenOverAllowTimeAwaitingDriver(string paymentMethod,string orderId,string captureId);
+    Task AutoSendEmailToAdminZaloPayWhenOverAllowTimeAwaitingDriver(string paymentMethod, string orderId);
     Task AutoResetCacheUserLoginCount();
 }
