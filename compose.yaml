@@ -1,0 +1,14 @@
+networks:
+  my_custom_network:
+
+services:
+  server:
+    build:
+      context: .
+      target: final
+    ports:
+      - 8080:80
+    container_name: myapp 
+    networks:
+      - my_custom_network
+
