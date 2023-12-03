@@ -33,6 +33,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:3001",
                 "http://localhost:8080",
                 "http://localhost:8000",
+                "http://143.198.196.235:8000",
                 "https://exe202.vercel.app",
                 "https://www.tsdproject.online",
                 "https://tsdproject.online")
