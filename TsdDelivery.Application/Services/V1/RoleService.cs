@@ -40,10 +40,6 @@ public class RoleService : IRoleService
         {
             result.AddUnknownError(ex.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 
@@ -63,10 +59,6 @@ public class RoleService : IRoleService
         catch(Exception ex)
         {
             result.AddUnknownError(ex.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }

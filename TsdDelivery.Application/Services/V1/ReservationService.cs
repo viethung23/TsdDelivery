@@ -69,10 +69,6 @@ public class ReservationService : IReservationService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
 
         return result;
     }
@@ -222,10 +218,6 @@ public class ReservationService : IReservationService
                 result.AddUnknownError(e.Message);
                 await transaction.RollbackAsync();
             }
-            finally
-            {
-                _unitOfWork.Dispose();
-            }
 
             return result;
         }
@@ -244,10 +236,6 @@ public class ReservationService : IReservationService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
 
         return result;
@@ -333,10 +321,6 @@ public class ReservationService : IReservationService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
 
         return result;
     }
@@ -392,10 +376,6 @@ public class ReservationService : IReservationService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }
@@ -533,10 +513,6 @@ public class ReservationService : IReservationService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 
@@ -552,10 +528,6 @@ public class ReservationService : IReservationService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
 
         return result;
@@ -573,10 +545,6 @@ public class ReservationService : IReservationService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
 
         return result;
@@ -606,10 +574,6 @@ public class ReservationService : IReservationService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
 
         return result;
     }
@@ -634,10 +598,6 @@ public class ReservationService : IReservationService
         catch (Exception e)
         {
             result.AddError(ErrorCode.NoContent,"khong tim thay don hang");
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }
@@ -668,10 +628,6 @@ public class ReservationService : IReservationService
         catch (Exception e)
         {
             result.AddError(ErrorCode.NoContent,"khong tim thay don hang");
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }

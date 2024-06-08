@@ -33,10 +33,6 @@ public class TransactionService : ITransactionService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 }

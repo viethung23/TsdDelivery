@@ -136,10 +136,6 @@ public class PaymentService : IPaymentService
                 result.AddUnknownError(e.Message);
                 await transaction.RollbackAsync();
             }
-            finally
-            {
-                _unitOfWork.Dispose();
-            }
             return result;
         }
     }
@@ -170,10 +166,6 @@ public class PaymentService : IPaymentService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }

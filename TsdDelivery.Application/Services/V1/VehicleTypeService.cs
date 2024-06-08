@@ -56,10 +56,6 @@ public class VehicleTypeService : IVehicleTypeService
         {
             result.AddUnknownError(ex.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 
@@ -78,10 +74,6 @@ public class VehicleTypeService : IVehicleTypeService
         {
             result.AddUnknownError(ex.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 
@@ -99,10 +91,6 @@ public class VehicleTypeService : IVehicleTypeService
         catch (Exception e)
         {
             result.AddUnknownError($"Not Found by ID: [{id}]");
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }
@@ -133,10 +121,6 @@ public class VehicleTypeService : IVehicleTypeService
         }catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }

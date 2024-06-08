@@ -43,10 +43,6 @@ public class ServiceService : IService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 

@@ -27,10 +27,6 @@ public class WalletService : IWalletService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 
@@ -49,10 +45,6 @@ public class WalletService : IWalletService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
         return result;
     }

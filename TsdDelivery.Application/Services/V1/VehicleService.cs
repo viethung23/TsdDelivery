@@ -63,10 +63,6 @@ public class VehicleService : IVehicleService
         {
             result.AddUnknownError(ex.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 
@@ -83,10 +79,6 @@ public class VehicleService : IVehicleService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
 
         return result;

@@ -90,10 +90,6 @@ public class DashBoardService : IDashBoardService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
 
         return result;
     }
@@ -162,10 +158,6 @@ public class DashBoardService : IDashBoardService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
-        finally
-        {
-            _unitOfWork.Dispose();
         }
 
         return result;

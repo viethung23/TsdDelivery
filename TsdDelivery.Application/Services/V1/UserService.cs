@@ -62,10 +62,6 @@ public class UserService : IUserService
         {
             result.AddUnknownError(ex.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
     

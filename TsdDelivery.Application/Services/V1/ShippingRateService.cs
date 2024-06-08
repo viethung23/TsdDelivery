@@ -39,10 +39,6 @@ public class ShippingRateService : IShippingRateService
         {
             result.AddUnknownError(e.Message);
         }
-        finally
-        {
-            _unitOfWork.Dispose();
-        }
         return result;
     }
 
